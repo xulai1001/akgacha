@@ -64,6 +64,7 @@ async def gacha_10(bot, ev: CQEvent):
     b = group_banner.get(gid, "普池")
     g = Gacha()
     g.set_banner(b)
+    g.rare_chance = False
     result = g.ten_pull()
     await bot.send(ev, g.summarize_tenpull(result), at_sender=True)
 
