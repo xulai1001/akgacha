@@ -1,6 +1,7 @@
 #encoding:utf-8
 import json, pprint, os
-chars = json.load(open("character_table.json", encoding="utf-8"))
+working_path = "hoshino/modules/akgacha/"
+chars = json.load(open(working_path + "character_table.json", encoding="utf-8"))
 
 banners = {
     "麦穗与赞美诗": {
