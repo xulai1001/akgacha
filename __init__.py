@@ -23,11 +23,11 @@ sv = Service('akgacha', help_=sv_help, enable_on_default=True)
 
 group_banner = {}
 try:
-    group_banner = json.load(open("group_banner.json", encoding="utf-8"))
+    group_banner = json.load(open(working_path + "group_banner.json", encoding="utf-8"))
 except FileNotFoundError: pass
     
 def save_group_pool():
-    with open("group_banner.json", encoding="utf-8") as f:
+    with open(working_path + "group_banner.json", "w", encoding="utf-8") as f:
         json.dump(group_banner, f, ensure_ascii=False)
         
 @sv.on_fullmatch(("查看方舟卡池"))
@@ -46,7 +46,7 @@ async def set_pool(bot, ev: CQEvent):
     name = util.normalize_str(ev.message.extract_plain_text())
     if not name:
         # 列出当前卡池
-        lines = ["可选卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+        lines = ["当期卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
         await bot.finish(ev, "\n".join(lines))
     else:
         if name in gacha_data["banners"].keys():
@@ -60,7 +60,16 @@ async def set_pool(bot, ev: CQEvent):
 
 @sv.on_prefix(("方舟十连"), only_to_me=True)
 async def gacha_10(bot, ev: CQEvent):
-    await bot.send(ev, "10连", at_sender=True)
+    gid = str(ev.group_id)
+    b = group_banner.get(gid, "普池")
+    g = Gacha()
+    g.set_banner(b)
+    result = g.ten_pull()
+    # print(result)
+    text = " ".join([f"☆{a['star']}{a['nhar']}" for a in result])
+    ids = [get_charid(a["char"]) for a in result]
+    print(ids)
+    await bot.send(ev, text, at_sender=True)
 
 @sv.on_prefix(("方舟来一井"), only_to_me=True)
 async def gacha_300(bot, ev: CQEvent):
