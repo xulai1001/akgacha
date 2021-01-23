@@ -207,7 +207,7 @@ class Gacha:
         team = [x["char"] for x in rst]
         pic = gen_team_pic(team)
         text = [f"{img_segment(pic)}"]
-        text += " ".join([f"☆{x['star']}{x['char']}" for x in rst])
+        text += [" ".join([f"☆{x['star']}{x['char']}" for x in rst])]
         return "\n".join(text)
         
 if __name__ == "__main__":
