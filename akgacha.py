@@ -3,9 +3,10 @@ import pprint, json, random, copy, math
 from io import BytesIO
 from PIL import Image
 
+working_path = "hoshino/modules/akgacha/"
 img_path = "./images"
-char_data = json.load(open("character_table.json", encoding="utf-8"))
-gacha_data = json.load(open("config.json", encoding="utf-8"))
+char_data = json.load(open(working_path + "character_table.json", encoding="utf-8"))
+gacha_data = json.load(open(working_path + "config.json", encoding="utf-8"))
 
 probs = {
     "up_6": 50,
