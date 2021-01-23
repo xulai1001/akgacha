@@ -43,7 +43,20 @@ async def gacha_info(bot, ev: CQEvent):
 
 @sv.on_prefix(("切换方舟卡池"))
 async def set_pool(bot, ev: CQEvent):
-    await bot.send(ev, "设置卡池命令")
+    name = util.normalize_str(ev.message.extract_plain_text())
+    if not name:
+        # 列出当前卡池
+        lines = ["可选卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+        await bot.finish(ev, "\n".join(lines))
+    else:
+        if name in gacha_data["banners"].keys():
+            gid = str(ev.group_id)
+            group_banner[gid] = name
+            save_group_pool()
+            await bot.send(ev, f"卡池已经切换为 {name}", at_sender=True)
+            await gacha_info(bot, ev)
+        else:
+            await bot.finish(ev, f"没找到卡池: {name}")
 
 @sv.on_prefix(("方舟十连"), only_to_me=True)
 async def gacha_10(bot, ev: CQEvent):
