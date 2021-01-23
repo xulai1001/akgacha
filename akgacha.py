@@ -192,34 +192,26 @@ class Gacha:
         return (green, yellow)
     
     def summarize(self):
-        team6 = [get_charid(x) for x in self.rare_list[6]]
-        #team5 = [get_charid(x) for x in self.rare_list[5]]
-        pic = gen_team_pic(team6)
-        
-        print("寻访结果:")
-        print("☆6×%d ☆5×%d ☆4×%d ☆3×%d" % (self.count[6], self.count[5], self.count[4], self.count[3]))
-        print("获得绿票×%d，黄票×%d！" % self.count_tickets())
+        pic = gen_team_pic(self.rare_list[6])
+        text = ["寻访结果:"]
+        text.append(f"{img_segment(pic)}")
+        text.append("☆6×%d ☆5×%d ☆4×%d ☆3×%d" % (self.count[6], self.count[5], self.count[4], self.count[3]))
+        text.append("获得绿票×%d，黄票×%d！" % self.count_tickets())
         if self.nth_target > 0:
-            print("第%d抽首次获得up角色" % self.nth_target)
+            text.append("第%d抽首次获得up角色" % self.nth_target)
         else:
-            print("up呢？我的up呢？")
-        pic.show()
+            text.append("up呢？我的up呢？")
+        return "\n".join(text)
         
-    def summarize_tenpull(self):
-        team = [get_charid(x) for x in self.result_list]
-        pic = gen_team_pic(team, 64)
-        print(self.result_list)
-        pic.show()
+    def summarize_tenpull(self, rst):
+        team = [x["char"] for x in rst]
+        pic = gen_team_pic(team)
+        text = [f"{img_segment(pic)}"]
+        text += " ".join([f"☆{x['star']}{x['char']}" for x in rst])
+        return "\n".join(text)
         
 if __name__ == "__main__":
     g = Gacha()
     g.set_banner("麦穗与赞美诗")
     pprint.pprint(g.banner)
-    #pprint.pprint(g.pool)
-    # 抽一井
-    for i in range(0, 30):
-        g.ten_pull()
-    g.summarize()
-
-    #g.ten_pull()
-    #g.summarize_tenpull()
+    
