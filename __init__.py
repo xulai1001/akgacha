@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 from collections import defaultdict
 
-from hoshino import Service, priv, util
+from hoshino import R, Service, priv, util
 from hoshino.typing import *
 from .akgacha import Gacha
 
