@@ -2,6 +2,9 @@
 import pprint, json, random, copy, math
 from io import BytesIO
 from PIL import Image
+from nonebot import MessageSegment
+from hoshino import R
+from hoshino.util import pic2b64
 
 working_path = "hoshino/modules/akgacha/"
 img_path = "akgacha"    # res/img/akgacha/*.png
@@ -57,13 +60,16 @@ def pull_naive(rate_6=2, limited=False, must_rare=False):
 # learn from HoshinoBot
 def gen_team_pic(team, size=64, ncol=5):
     nrow = math.ceil(len(team)/ncol)
-    des = Image.new("RGBA", (ncol * size, nrow * size), (255, 255, 255, 255))
-    for i, id in enumerate(team):
-        face = R.Img("%s/%s.png" % (img_path, id)).open().convert("RGBA").resize((size, size), Image.LANCZOS)
+    des = Image.new("RGBA", (ncol * size, nrow * size), (0,0,0, 0))
+    for i, name in enumerate(team):
+        face = R.img("%s/%s.png" % (img_path, get_charid(name))).open().convert("RGBA").resize((size, size), Image.LANCZOS)
         x = i % ncol
         y = math.floor(i / ncol)
         des.paste(face, (x * size, y * size), face)
     return des
+
+def img_segment(img):
+    return MessageSegment.image(pic2b64(img))
     
 class Gacha:
     def __init__(self):
@@ -95,16 +101,19 @@ class Gacha:
         if len(main_up) == 0:
             main_up = self.banner["up_5"]
             other_up = self.banner["up_4"]
-        main_pic = gen_team_pic(main_up)
-        other_pic = gen_team_pic(other_up) if len(other_up) > 0 else None
+        main_pic = gen_team_pic(main_up, 72, len(main_up))
+        other_pic = gen_team_pic(other_up, 72, len(other_up)) if len(other_up) > 0 else None
         banner_name = self.banner["name"]
         if banner_name == "普池": banner_name += " #%d" % self.banner["id"]
         lines = []
         lines.append(f"当前卡池: {banner_name}")
         if self.banner["limited"]: lines.append("(限定池)")
-        lines.append(f"主打角色: {MessageSegment.image(main_pic)} {' '.join(main_up)}")
+        # print(img_segment(main_pic))
+        lines.append(f"主打角色: {' '.join(main_up)}")
+        lines.append(f"{img_segment(main_pic)}")
         if other_pic:
-            lines.append(f"其他up角色: {MessageSegment.image(other_pic)} {' '.join(other_up)}")
+            lines.append(f"其他up角色: {' '.join(other_up)}")
+            lines.append(f"{img_segment(other_pic)}")
         return "\n".join(lines)
         
 
