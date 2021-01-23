@@ -38,11 +38,8 @@ async def gacha_info(bot, ev: CQEvent):
     banner = group_banner[gid]
     gacha = Gacha()
     gacha.set_banner(banner)
-    line = [banner]
-    line.append(f"up角色: {' '.join(gacha.banner['up_6']+gacha.banner['up_5']+gacha.banner['up_4'])}")
-    line.append(f"限定池: {'是' if gacha.banner['limited'] else '否'}")
-    print(line)
-    await bot.send(ev, '\n'.join(line))
+    line = gacha.explain_banner()
+    await bot.send(ev, line)
 
 @sv.on_prefix(("切换方舟卡池"))
 async def set_pool(bot, ev: CQEvent):

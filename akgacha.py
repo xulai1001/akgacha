@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 
 working_path = "hoshino/modules/akgacha/"
-img_path = "./images"
+img_path = "akgacha"    # res/img/akgacha/*.png
 char_data = json.load(open(working_path + "character_table.json", encoding="utf-8"))
 gacha_data = json.load(open(working_path + "config.json", encoding="utf-8"))
 
@@ -59,7 +59,7 @@ def gen_team_pic(team, size=64, ncol=5):
     nrow = math.ceil(len(team)/ncol)
     des = Image.new("RGBA", (ncol * size, nrow * size), (255, 255, 255, 255))
     for i, id in enumerate(team):
-        face = Image.open("%s/%s.png" % (img_path, id)).convert("RGBA").resize((size, size), Image.LANCZOS)
+        face = R.Img("%s/%s.png" % (img_path, id)).open().convert("RGBA").resize((size, size), Image.LANCZOS)
         x = i % ncol
         y = math.floor(i / ncol)
         des.paste(face, (x * size, y * size), face)
@@ -89,6 +89,25 @@ class Gacha:
         for key in ["star_6", "star_5", "star_4", "star_3"]:
             self.pool[key] = [x for x in gacha_data["pool"][key] if x not in exclude]
     
+    def explain_banner(self):
+        main_up = self.banner["up_6"]
+        other_up = self.banner["up_5"] + self.banner["up_4"]
+        if len(main_up) == 0:
+            main_up = self.banner["up_5"]
+            other_up = self.banner["up_4"]
+        main_pic = gen_team_pic(main_up)
+        other_pic = gen_team_pic(other_up) if len(other_up) > 0 else None
+        banner_name = self.banner["name"]
+        if banner_name == "普池": banner_name += " #%d" % self.banner["id"]
+        lines = []
+        lines.append(f"当前卡池: {banner_name}")
+        if self.banner["limited"]: lines.append("(限定池)")
+        lines.append(f"主打角色: {MessageSegment.image(main_pic)} {' '.join(main_up)}")
+        if other_pic:
+            lines.append(f"其他up角色: {MessageSegment.image(other_pic)} {' '.join(other_up)}")
+        return "\n".join(lines)
+        
+
     def rate_6(self):
         return 2 if self.n6count < 50 else 2 * (self.n6count - 49)
         
