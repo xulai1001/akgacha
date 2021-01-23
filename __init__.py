@@ -65,13 +65,14 @@ async def gacha_10(bot, ev: CQEvent):
     g = Gacha()
     g.set_banner(b)
     result = g.ten_pull()
-    # print(result)
-    text = " ".join([f"☆{a['star']}{a['nhar']}" for a in result])
-    ids = [get_charid(a["char"]) for a in result]
-    print(ids)
-    await bot.send(ev, text, at_sender=True)
+    await bot.send(ev, g.summarize_tenpull(result), at_sender=True)
 
 @sv.on_prefix(("方舟来一井"), only_to_me=True)
 async def gacha_300(bot, ev: CQEvent):
-    await bot.send(ev, "抽一井", at_sender=True)
-    
+    gid = str(ev.group_id)
+    b = group_banner.get(gid, "普池")
+    g = Gacha()
+    g.set_banner(b)
+    for i in range(0, 30):
+        g.ten_pull()
+    await bot.send(ev, g.summarize(), at_sender=True)
