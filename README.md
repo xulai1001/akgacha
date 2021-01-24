@@ -1,7 +1,7 @@
 # akgacha
-arknights gacha simulator for hoshinobot
+Arknights Gacha Simulator plugin for [HoshinoBot](https://github.com/Ice-Cirno/HoshinoBot)
 
-author: 库兰 - NGA romanosovsky
+Author: 库兰 - NGA romanosovsky
 
 使用方法
 ======
@@ -22,3 +22,4 @@ author: 库兰 - NGA romanosovsky
 ======
 - 如果碰到找不到json文件的问题，尝试调整代码的working_path字符串。这部分还在调整中
 - 卡池数据在config.json中，可以在项目目录下运行generate_config.py生成。（up谁需要自己填写）
+- 程序内使用的游戏图片，仅用于更好地表现游戏资料，其版权属于 Arknights/上海鹰角网络科技有限公司。其他内容采用知识共享署名-非商业性使用-相同方式共享授权。
