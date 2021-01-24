@@ -19,7 +19,7 @@ sv_help = '''
 [查看方舟卡池] 当前卡池信息
 [切换方舟卡池] 更改卡池
 '''.strip()
-sv = Service('akgacha', help_=sv_help, enable_on_default=True)
+sv = Service('akgacha', help_=sv_help, bundle="akgacha", enable_on_default=True)
 
 group_banner = {}
 try:
