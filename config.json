@@ -2,6 +2,8 @@
   "banners": {
     "麦穗与赞美诗": {
       "limited": false,
+      "no_other_6": false,
+      "favor": null,
       "up_6": [
         "空弦"
       ],
@@ -16,6 +18,8 @@
     },
     "地生五金-复刻": {
       "limited": true,
+      "no_other_6": false,
+      "favor": "年",
       "up_6": [
         "年",
         "阿"
@@ -29,6 +33,8 @@
     "普池": {
       "id": 46,
       "limited": false,
+      "no_other_6": false,
+      "favor": null,
       "up_6": [
         "陈",
         "推进之王"

@@ -83,6 +83,7 @@ class Gacha:
         self.rare_chance = True
         self.nth = 0
         self.nth_target = 0
+        self.nth_favor = 0
         self.n6count = 0;
     
     def set_banner(self, b):
@@ -114,6 +115,10 @@ class Gacha:
         if other_pic:
             lines.append(f"其他up角色: {' '.join(other_up)}")
             lines.append(f"{img_segment(other_pic)}")
+        if self.banner["no_other_6"]:
+            lines.append("仅出现up的六星角色")
+        if self.banner["favor"]:
+            lines.append(f"目标角色: {self.banner['favor']}")
         return "\n".join(lines)
         
 
@@ -142,6 +147,8 @@ class Gacha:
         # 记录首次获得up角色
         if (type=="up_6" or (len(self.pool["up_6"])==0 and type=="up_5")) and self.nth_target == 0:
             self.nth_target = self.nth
+        if self.banner["favor"] and cname == self.banner["favor"] and self.nth_favor == 0:
+            self.nth_favor = self.nth
         # 记录角色
         self.char_count[cname] = self.char_count.get(cname,
             { "id": get_charid(cname), "star": result["star"], "count": 0 })
@@ -155,7 +162,7 @@ class Gacha:
             self.rare_list[result["star"]].append(cname)
         # 清除软保底
         if result["star"] == 6:
-            print("6星!")            
+            print(result)            
             if self.n6count >= 50:
                 print("软保底 - %d" % (self.n6count+1))
                 result["软保底"] = True
@@ -198,9 +205,33 @@ class Gacha:
         text.append("☆6×%d ☆5×%d ☆4×%d ☆3×%d" % (self.count[6], self.count[5], self.count[4], self.count[3]))
         text.append("获得绿票×%d，黄票×%d！" % self.count_tickets())
         if self.nth_target > 0:
-            text.append("第%d抽首次获得up角色" % self.nth_target)
+            line = "第%d抽首次获得up角色" % self.nth_target
+            if self.banner["favor"] and self.nth_favor > 0:
+                if self.nth_favor > self.nth_target:
+                    line += "，但是歪了"
+                line += "\n第%d抽首次获得目标角色" % self.nth_favor
+            text.append(line)
         else:
             text.append("up呢？我的up呢？")
+
+        # 评价
+        judge = self.nth_favor if self.banner["favor"] else self.nth_target
+        if judge <= 25:
+            text.append("海猫亏到坐公交")
+        elif judge < 50:
+            text.append("可以了，您已经很欧了")
+        elif judge < 70:
+            text.append("保底出货，标准结局")
+        elif judge < 120:
+            text.append("期望之内，亚洲水平")
+        elif judge < 200:
+            line = "我的LP还有剩余！抽卡！"
+            if self.count[6] >= 8:
+                line = "歪的有点多啊......但是，" + line
+            text.append(line)
+        else:
+            text.append("dame dane...")
+            
         return "\n".join(text)
         
     def summarize_tenpull(self, rst):

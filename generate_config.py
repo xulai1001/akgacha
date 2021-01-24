@@ -1,11 +1,13 @@
 #encoding:utf-8
 import json, pprint, os
 working_path = "hoshino/modules/akgacha/"
-chars = json.load(open(working_path + "character_table.json", encoding="utf-8"))
+chars = json.load(open("character_table.json", encoding="utf-8"))
 
 banners = {
     "麦穗与赞美诗": {
         "limited": False,
+        "no_other_6": False,
+        "favor": None,
         "up_6": ["空弦"],
         "up_5": ["贾维", "爱丽丝"],
         "up_4": ["豆苗"],
@@ -13,6 +15,8 @@ banners = {
     },
     "地生五金-复刻": {
         "limited": True,
+        "no_other_6": False,
+        "favor": "年",
         "up_6": ["年", "阿"],
         "up_5": ["吽"],
         "up_4": [],
@@ -21,6 +25,8 @@ banners = {
     "普池": {
         "id": 46,
         "limited": False,
+        "no_other_6": False,
+        "favor": None,
         "up_6": ["陈", "推进之王"],
         "up_5": ["临光", "可颂", "燧石"],
         "up_4": [],
@@ -53,4 +59,5 @@ result = { "banners": banners, "pool": pool }
 with open("config.json", "w", encoding="utf-8") as f:
     f.write(json.dumps(result, indent=2, ensure_ascii=False))
 
-os.system("config.json")
+# os.system("config.json")
+
