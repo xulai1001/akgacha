@@ -119,6 +119,13 @@ class Gacha:
             lines.append("仅出现up的六星角色")
         if self.banner["favor"]:
             lines.append(f"目标角色: {self.banner['favor']}")
+        if len(self.banner["up_6"]) > 0:
+            rate = probs["limited_up_6"] if self.banner["limited"] else probs["up_6"]
+            lines.append(f"up角色合计 {rate/50}%, 6星基础出率 2%")
+        else:
+            rate = probs["up_5"]
+            lines.append(f"up角色合计 {rate*8/100}%, 6星基础出率 2%")
+
         return "\n".join(lines)
         
 
