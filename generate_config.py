@@ -22,6 +22,16 @@ banners = {
         "up_4": [],
         "exclude": []
     },
+    "月隐晦明": {
+        "limited": True,
+        "no_other_6": False,
+        "favor": "夕",
+        "up_6": ["夕", "嵯峨"],
+        "up_5": ["乌有"],
+        "up_4": [],
+        "exclude": [],
+        "multi": { "年": 6 }
+    },
     "普池": {
         "id": 46,
         "limited": False,
