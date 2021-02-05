@@ -1,4 +1,19 @@
 {
+  "char_stub_dusk": {
+    "name": "夕",
+    "itemObtainApproach": "招募寻访",
+    "rarity": 5
+  },
+  "char_stub_saga": {
+    "name": "嵯峨",
+    "itemObtainApproach": "招募寻访",
+    "rarity": 5
+  },
+  "char_stub_nthing": {
+    "name": "乌有",
+    "itemObtainApproach": "招募寻访",
+    "rarity": 4
+  },
   "char_285_medic2": {
     "name": "Lancet-2",
     "description": "恢复友方单位生命，且不受<@ba.kw>部署数量</>限制，但再部署时间极长",

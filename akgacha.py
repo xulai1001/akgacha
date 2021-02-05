@@ -7,6 +7,7 @@ from hoshino import R
 from hoshino.util import pic2b64
 
 working_path = "hoshino/modules/akgacha/"
+#working_path=""
 img_path = "akgacha"    # res/img/akgacha/*.png
 char_data = json.load(open(working_path + "character_table.json", encoding="utf-8"))
 gacha_data = json.load(open(working_path + "config.json", encoding="utf-8"))
@@ -95,10 +96,20 @@ class Gacha:
         exclude = self.banner["up_6"] + self.banner["up_5"] + self.banner["up_4"] + self.banner["exclude"]
         for key in ["star_6", "star_5", "star_4", "star_3"]:
             self.pool[key] = [x for x in gacha_data["pool"][key] if x not in exclude]
+        if self.banner["multi"]: # 特殊倍率处理
+            for key in self.banner["multi"].keys():
+                id = get_charid(key)
+                rarity = "star_%d" % (char_data[id]["rarity"] + 1)
+                n = self.banner["multi"][key]-1
+                print(id, rarity, n)
+                self.pool[rarity] += [key] * n
+                print(self.pool[rarity])                
     
     def explain_banner(self):
         main_up = self.banner["up_6"]
         other_up = self.banner["up_5"] + self.banner["up_4"]
+        if self.banner["multi"]:
+            other_up += list(self.banner["multi"].keys())
         if len(main_up) == 0:
             main_up = self.banner["up_5"]
             other_up = self.banner["up_4"]
@@ -250,6 +261,6 @@ class Gacha:
         
 if __name__ == "__main__":
     g = Gacha()
-    g.set_banner("麦穗与赞美诗")
+    g.set_banner("月隐晦明")
     pprint.pprint(g.banner)
     
