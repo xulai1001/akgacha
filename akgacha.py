@@ -96,7 +96,7 @@ class Gacha:
         exclude = self.banner["up_6"] + self.banner["up_5"] + self.banner["up_4"] + self.banner["exclude"]
         for key in ["star_6", "star_5", "star_4", "star_3"]:
             self.pool[key] = [x for x in gacha_data["pool"][key] if x not in exclude]
-        if self.banner["multi"]: # 特殊倍率处理
+        if self.banner.get("multi", None): # 特殊倍率处理
             for key in self.banner["multi"].keys():
                 id = get_charid(key)
                 rarity = "star_%d" % (char_data[id]["rarity"] + 1)
@@ -108,7 +108,7 @@ class Gacha:
     def explain_banner(self):
         main_up = self.banner["up_6"]
         other_up = self.banner["up_5"] + self.banner["up_4"]
-        if self.banner["multi"]:
+        if self.banner.get("multi", None):
             other_up += list(self.banner["multi"].keys())
         if len(main_up) == 0:
             main_up = self.banner["up_5"]
