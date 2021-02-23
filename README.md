@@ -4,6 +4,10 @@ Arknights Gacha Simulator plugin for [HoshinoBot](https://github.com/Ice-Cirno/H
 Author: 库兰 - NGA romanosovsky
 GitHub: https://github.com/xulai1001/akgacha
 
+更新日志
+======
+# 2.23 更新干员头像和新普池
+
 使用方法
 ======
 [@Bot 方舟十连] 明日方舟抽卡
