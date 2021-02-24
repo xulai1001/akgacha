@@ -25,7 +25,10 @@ def get_weibo(uid=6279793937):
     for cd in cards:
         # pprint.pprint(cd)
         item = { k: cd["mblog"][k] for k in ["created_at", "text", "id"] }
+        # user
+        item["username"] = cd["mblog"]["user"]["screen_name"]
         # trim html
+        item["text"] = re.sub(r'<br />', "\n", item["text"])
         item["text"] = re.sub(r'<[^>]+>', "", item["text"])
         # RubyTime: 'Thu Jan 28 11:05:06 +0800 2021'
         item["timestamp"] = datetime.strptime(item["created_at"], "%a %b %d %H:%M:%S %z %Y").timestamp()
