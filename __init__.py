@@ -1,9 +1,10 @@
 #encoding:utf-8
-import os, random, re, pprint, json, math, asyncio
+import os, random, re, pprint, json, math, asyncio, threading
 from io import BytesIO
 from PIL import Image
 from collections import defaultdict
 from datetime import datetime
+import nonebot
 from hoshino import R, Service, priv, util
 from hoshino.typing import *
 from .akgacha import Gacha
@@ -19,7 +20,7 @@ sv_help = '''
 [@Bot方舟来一井] 龙门币算什么，看我18w合成玉
 [查看方舟卡池] 当前卡池信息
 [切换方舟卡池] 更改卡池
-[查饼] 查看微博消息
+[饼呢/吃饼] 查看微博消息
 [蹲饼/取消蹲饼] 为本群开启/关闭蹲饼
 '''.strip()
 sv = Service('akgacha', help_=sv_help, bundle="akgacha", enable_on_default=True)
@@ -47,7 +48,7 @@ async def gacha_info(bot, ev: CQEvent):
     line = gacha.explain_banner()
     await bot.send(ev, line)
 
-@sv.on_prefix(("切换方舟卡池"))
+@sv.on_fullmatch(("切换方舟卡池"))
 async def set_pool(bot, ev: CQEvent):
     name = util.normalize_str(ev.message.extract_plain_text())
     if not name:
@@ -83,21 +84,47 @@ async def gacha_300(bot, ev: CQEvent):
     for i in range(0, 30):
         g.ten_pull()
     await bot.send(ev, g.summarize(), at_sender=True)
+
+def format_weibo(blog):
+    pprint.pprint(blog)
+    lines = []
+    lines.append("发布者: %s, 时间: %s" % (blog["username"], 
+                 datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
+                ))
+    if blog.get("pics", None):
+        lines += [f'{MessageSegment.image(x)}' for x in blog["pics"]]
+    if blog.get("media", None):
+        lines += ["视频链接: %s" % blog["media"]]
+    lines.append(blog["text"])
+    lines.append("https://m.weibo.cn/status/%s" % blog["id"])
+ #   pprint.pprint(lines)
+    return "\n".join(lines)
     
-@sv.on_prefix(("查饼"))
+@sv.on_prefix(("吃饼", "饼呢"))
 async def weibo_check(bot, ev: CQEvent):
     gid = str(ev.group_id)
     if not gid in group_banner:
         ak_group_init(gid)
-    now = datetime.now().timestamp()
-    from = group_banner[gid]["weibo_check"]
+    t_now = datetime.now().timestamp()
+    t_from = group_banner[gid]["weibo_check"]
     result = get_weibo()
-    result_f = filter(lambda x: x["timestamp"] >= from, result)
-    group_banner[gid]["weibo_check"] = now
+    result_f = list(filter(lambda x: x["timestamp"] >= t_from, result))
+    lines = []
+    if len(str(ev.message)) > 0:
+        x = int(str(ev.message)) - 1
+        if x>=0 and x<len(result):
+            lines.append("第 %d 张旧饼内容:" % (x+1))
+            lines.append(format_weibo(result[x]))
+    else:
+        n_new = len(result_f)
+        lines.append("有 %d 张新饼" % n_new)
+        lines += [format_weibo(x) for x in result_f]
+        lines.append("一共有 %d 张饼，回复'吃饼 x'查看旧饼" % len(result))
+    group_banner[gid]["weibo_check"] = t_now
     save_group_banner()
-    await bot.send(ev, pprint.pprint([result[0], "历史消息"] + result_f[1:]))
+    await bot.send(ev, "\n".join(lines))
 
-@sv.on_prefix(("蹲饼"))
+@sv.on_fullmatch(("蹲饼"))
 async def weibo_push_enable(bot, ev: CQEvent):
     gid = str(ev.group_id)
     if not gid in group_banner:
@@ -105,7 +132,8 @@ async def weibo_push_enable(bot, ev: CQEvent):
     group_banner[gid]["weibo_push"] = True
     save_group_banner()
     await bot.send(ev, "已开启蹲饼推送，可用'取消蹲饼'关闭")
-    
+
+@sv.on_fullmatch(("取消蹲饼"))
 async def weibo_push_disable(bot, ev: CQEvent):
     gid = str(ev.group_id)
     if not gid in group_banner:
@@ -114,17 +142,39 @@ async def weibo_push_disable(bot, ev: CQEvent):
     save_group_banner()
     await bot.send(ev, "已关闭蹲饼推送")
     
+async def weibo_do_bcast(rst):
+    bot = nonebot.get_bot()
+    for gid in group_banner.keys():
+        if (group_banner[gid].get("weibo_push", None)):
+            print("推送至群 - %s" % gid)
+            await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
+
 async def weibo_push():
     result = get_weibo()
     ts = result[0]["timestamp"]+1
-    try:
-        while True:
-            result = get_weibo(2859117414)
-            if result[0]["timestamp"] > ts:
+    print("开始蹲饼")
+    while True:
+        s = 30
+        if datetime.now().hour > 10 and datetime.now().hour < 21:
+            s = 10
+        
+        result = get_weibo()
+        if result[0]["timestamp"] > ts:
+            print("- 检测到微博更新")
+            try:
+                await weibo_do_bcast(result[0])
                 ts = result[0]["timestamp"]
-                print("- 检测到微博更新")
-                pprint.pprint(result[0])
-            s = 30
-            if datetime.now().hour > 10 and datetime.now().hour < 21:
-                s = 10
-            await asyncio.sleep(s)
+            except:
+                print("推送时出现错误，等待3秒重试")
+                s=3
+        await asyncio.sleep(s)
+
+def work_thread(loop):
+    print("开始工作线程")
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(weibo_push())
+
+_loop = asyncio.new_event_loop()
+t = threading.Thread(target=work_thread, args=(_loop,))
+t.daemon = True
+t.start()

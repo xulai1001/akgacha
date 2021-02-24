@@ -1,9 +1,9 @@
 #encoding:utf-8
 import json, pprint, os
 working_path = "hoshino/modules/akgacha/"
-chars = json.load(open("character_table.json", encoding="utf-8"))
-
-banners = {
+try:
+    chars = json.load(open("character_table.json", encoding="utf-8"))
+    banners = {
     "麦穗与赞美诗": {
         "limited": False,
         "no_other_6": False,
@@ -42,10 +42,10 @@ banners = {
         "up_4": [],
         "exclude": []
     }
-}
+    }
 
-# 生成普池数据
-pool = {
+    # 生成普池数据
+    pool = {
     "star_6": [],
     "star_5": [],
     "star_4": [],
@@ -53,21 +53,22 @@ pool = {
     "other_chars": [],
     "recruit_chars": ["艾丝黛尔", "火神", "因陀罗"],
     "limited_chars": ["W", "年", "迷迭香"]
-}
+    }
 
-for k in chars.keys():
-    name = chars[k]["name"]
-    if not k.startswith("char"):
-        pass
-    elif chars[k]["itemObtainApproach"] != "招募寻访" or chars[k]["rarity"] < 2:
-        pool["other_chars"].append(name)
-    elif not name in (pool["recruit_chars"] + pool["limited_chars"]):
-        pool["star_%d" % (chars[k]["rarity"]+1)].append(name)
+    for k in chars.keys():
+        name = chars[k]["name"]
+        if not k.startswith("char"):
+            pass
+        elif chars[k]["itemObtainApproach"] != "招募寻访" or chars[k]["rarity"] < 2:
+            pool["other_chars"].append(name)
+        elif not name in (pool["recruit_chars"] + pool["limited_chars"]):
+            pool["star_%d" % (chars[k]["rarity"]+1)].append(name)
 
-result = { "banners": banners, "pool": pool }
+    result = { "banners": banners, "pool": pool }
         
-with open("config.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(result, indent=2, ensure_ascii=False))
-
+    with open("config.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(result, indent=2, ensure_ascii=False))
+except:
+    pass
 # os.system("config.json")
 
