@@ -156,7 +156,11 @@ async def weibo_push():
     global ts_push
     # print("- get_weibo")
     uids = [6279793937]
-    result = [get_weibo(x) for x in uids]
+    result = []
+    for x in uids:
+        print("- get_weibo %d" % x) 
+        result.append(get_weibo(x))
+        await asyncio.sleep(3)
     for item in result:
         if item[0]["timestamp"] >= ts_push:
             print("- weibo_push: 检测到微博更新")
