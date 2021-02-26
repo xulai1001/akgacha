@@ -149,32 +149,17 @@ async def weibo_do_bcast(rst):
             print("推送至群 - %s" % gid)
             await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
 
+ts_push = datetime.now().timestamp()
+
+@sv.scheduled_job("interval", seconds=15, jitter=5)
 async def weibo_push():
-    result = get_weibo()
-    ts = result[0]["timestamp"]+1
-    print("开始蹲饼")
-    while True:
-        s = 30
-        if datetime.now().hour > 10 and datetime.now().hour < 21:
-            s = 10
-        
-        result = get_weibo()
-        if result[0]["timestamp"] > ts:
-            print("- 检测到微博更新")
-            try:
-                await weibo_do_bcast(result[0])
-                ts = result[0]["timestamp"]
-            except:
-                print("推送时出现错误，等待3秒重试")
-                s=3
-        await asyncio.sleep(s)
+    global ts_push
+    print("- get_weibo")
+    uids = [6279793937, 2859117414]
+    result = [get_weibo(x) for x in uids]
+    for item in result:
+        if item[0]["timestamp"] >= ts_push:
+            print("- weibo_push: 检测到微博更新")
+            await weibo_do_bcast(item[0])
+    ts_push = datetime.now().timestamp()
 
-def work_thread(loop):
-    print("开始工作线程")
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(weibo_push())
-
-_loop = asyncio.new_event_loop()
-t = threading.Thread(target=work_thread, args=(_loop,))
-t.daemon = True
-t.start()
