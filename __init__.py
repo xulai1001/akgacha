@@ -154,8 +154,8 @@ ts_push = datetime.now().timestamp()
 @sv.scheduled_job("interval", seconds=15, jitter=5)
 async def weibo_push():
     global ts_push
-    print("- get_weibo")
-    uids = [6279793937, 2859117414]
+    # print("- get_weibo")
+    uids = [6279793937]
     result = [get_weibo(x) for x in uids]
     for item in result:
         if item[0]["timestamp"] >= ts_push:
