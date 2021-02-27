@@ -1,6 +1,7 @@
 #encoding:utf-8
 import pprint, json, requests, time, re
 from datetime import datetime
+import urllib3
 
 #working_path = "hoshino/modules/akgacha/"
 #header = { 'User-Agent': 
@@ -9,8 +10,13 @@ from datetime import datetime
 home_api = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%d"
 weibo_api = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%d&containerid=%d"
 
+# turn off keep-alive
+s = requests.session()
+s.keep_alive = False
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 def get_cid(uid):
-    r = requests.get(home_api % uid)
+    r = requests.get(home_api % uid, verify=False)
     data = json.loads(r.text)    
     weibo_tab = [x for x in data["data"]["tabsInfo"]["tabs"] if x["tabKey"] == "weibo"][0]
     return int(weibo_tab["containerid"])
@@ -19,7 +25,7 @@ def get_cid(uid):
 def get_weibo(uid=6279793937):
     cid = get_cid(uid)
     ret = []
-    r = requests.get(weibo_api % (uid, cid))
+    r = requests.get(weibo_api % (uid, cid), verify=False)
     data = json.loads(r.text)
     cards = [x for x in data["data"]["cards"] if x["card_type"] == 9]
     for cd in cards:

@@ -150,20 +150,28 @@ async def weibo_do_bcast(rst):
             await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
 
 ts_push = datetime.now().timestamp()
+cnt = 0
 
 @sv.scheduled_job("interval", seconds=15, jitter=5)
 async def weibo_push():
     global ts_push
+    global cnt
     # print("- get_weibo")
-    uids = [6279793937]
-    result = []
-    for x in uids:
-        print("- get_weibo %d" % x) 
-        result.append(get_weibo(x))
-        await asyncio.sleep(3)
-    for item in result:
-        if item[0]["timestamp"] >= ts_push:
-            print("- weibo_push: 检测到微博更新")
-            await weibo_do_bcast(item[0])
-    ts_push = datetime.now().timestamp()
+    hr = datetime.now().hour
+    if (hr<10 or hr>19) and (cnt % 3 != 0):
+        print("- skipped")
+    else:
+        # uids = [6279793937, 1721030997]
+        uids = [6279793937]
+        result = []
+        for x in uids:
+            print("- get_weibo %d" % x) 
+            result.append(get_weibo(x))
+            await asyncio.sleep(3)
+        for item in result:
+            if item[0]["timestamp"] >= ts_push:
+                print("- weibo_push: 检测到微博更新")
+                await weibo_do_bcast(item[0])
+        ts_push = datetime.now().timestamp()
+        cnt += 1
 
