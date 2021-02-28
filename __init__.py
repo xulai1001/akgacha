@@ -84,6 +84,12 @@ async def gacha_300(bot, ev: CQEvent):
     for i in range(0, 30):
         g.ten_pull()
     await bot.send(ev, g.summarize(), at_sender=True)
+    
+@sv.on_fullmatch(("方舟刷本效率"))
+async def show_mats(bot, ev: CQEvent):
+    img = MessageSegment.image(f'file:///{working_path}ak-mats.jpg')
+    line = f'{img}'
+    await bot.send(ev, line)
 
 def format_weibo(blog):
     pprint.pprint(blog)
