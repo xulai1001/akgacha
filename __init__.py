@@ -87,7 +87,7 @@ async def gacha_300(bot, ev: CQEvent):
     
 @sv.on_fullmatch(("方舟刷本效率"))
 async def show_mats(bot, ev: CQEvent):
-    img = MessageSegment.image(f'file:///{working_path}ak-mats.jpg')
+    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "ak-mats.jpg")}')
     line = f'{img}'
     await bot.send(ev, line)
 
