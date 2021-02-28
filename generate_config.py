@@ -52,7 +52,7 @@ try:
     "star_3": [],
     "other_chars": [],
     "recruit_chars": ["艾丝黛尔", "火神", "因陀罗"],
-    "limited_chars": ["W", "年", "迷迭香"]
+    "limited_chars": ["W", "年", "迷迭香", "夕"]
     }
 
     for k in chars.keys():
