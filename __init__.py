@@ -53,10 +53,10 @@ async def set_pool(bot, ev: CQEvent):
     name = util.normalize_str(ev.message.extract_plain_text())
     if not name:
         # 列出当前卡池
-        lines = ["当期卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+        lines = ["当期卡池:"] + list(gacha_data["banner"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
         await bot.finish(ev, "\n".join(lines))
     else:
-        if name in gacha_data["banners"].keys():
+        if name in gacha_data["banner"].keys():
             gid = str(ev.group_id)
             group_banner[gid]["banner"] = name
             save_group_banner()
@@ -68,7 +68,9 @@ async def set_pool(bot, ev: CQEvent):
 @sv.on_prefix(("方舟十连"), only_to_me=True)
 async def gacha_10(bot, ev: CQEvent):
     gid = str(ev.group_id)
-    b = group_banner.get(gid, "普池")
+    if not gid in group_banner:
+        ak_group_init(gid)
+    b = group_banner[gid]["banner"]
     g = Gacha()
     g.set_banner(b)
     g.rare_chance = False
@@ -78,7 +80,9 @@ async def gacha_10(bot, ev: CQEvent):
 @sv.on_prefix(("方舟来一井"), only_to_me=True)
 async def gacha_300(bot, ev: CQEvent):
     gid = str(ev.group_id)
-    b = group_banner.get(gid, "普池")
+    if not gid in group_banner:
+        ak_group_init(gid)
+    b = group_banner[gid]["banner"]
     g = Gacha()
     g.set_banner(b)
     for i in range(0, 30):
