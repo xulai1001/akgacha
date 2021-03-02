@@ -48,15 +48,15 @@ async def gacha_info(bot, ev: CQEvent):
     line = gacha.explain_banner()
     await bot.send(ev, line)
 
-@sv.on_fullmatch(("切换方舟卡池"))
+@sv.on_prefix(("切换方舟卡池"))
 async def set_pool(bot, ev: CQEvent):
     name = util.normalize_str(ev.message.extract_plain_text())
     if not name:
         # 列出当前卡池
-        lines = ["当期卡池:"] + list(gacha_data["banner"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+        lines = ["当期卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
         await bot.finish(ev, "\n".join(lines))
     else:
-        if name in gacha_data["banner"].keys():
+        if name in gacha_data["banners"].keys():
             gid = str(ev.group_id)
             group_banner[gid]["banner"] = name
             save_group_banner()
@@ -140,7 +140,6 @@ async def weibo_push_enable(bot, ev: CQEvent):
     if not gid in group_banner:
         ak_group_init(gid)
     group_banner[gid]["weibo_push"] = True
-    save_group_banner()
     await bot.send(ev, "已开启蹲饼推送，可用'取消蹲饼'关闭")
 
 @sv.on_fullmatch(("取消蹲饼"))
@@ -158,6 +157,8 @@ async def weibo_do_bcast(rst):
         if (group_banner[gid].get("weibo_push", None)):
             print("推送至群 - %s" % gid)
             await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
+            group_banner[gid]["weibo_check"] = datetime.now().timestamp()
+    save_group_banner()
 
 ts_push = datetime.now().timestamp()
 cnt = 0
@@ -171,8 +172,7 @@ async def weibo_push():
     if (hr<10 or hr>19) and (cnt % 3 != 0):
         print("- skipped")
     else:
-        # uids = [6279793937, 1721030997]
-        uids = [6279793937]
+        uids = [6279793937, 1652903644]
         result = []
         for x in uids:
             print("- get_weibo %d" % x) 

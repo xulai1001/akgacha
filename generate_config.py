@@ -37,7 +37,7 @@ try:
         "limited": False,
         "no_other_6": False,
         "favor": None,
-        "up_6": ["伊芙丽特", "森蚺"],
+        "up_6": ["伊芙利特", "森蚺"],
         "up_5": ["幽灵鲨", "惊蛰", "食铁兽"],
         "up_4": [],
         "exclude": []
