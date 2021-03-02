@@ -5,8 +5,8 @@ from PIL import Image
 from nonebot import MessageSegment
 from hoshino import R
 from hoshino.util import pic2b64
-
 working_path = "hoshino/modules/akgacha/"
+
 #working_path=""
 img_path = "akgacha"    # res/img/akgacha/*.png
 char_data = json.load(open(working_path + "character_table.json", encoding="utf-8"))
@@ -41,7 +41,7 @@ def pull_naive(rate_6=2, limited=False, must_rare=False):
     if x1 < rate_6:
         x2 = roll(100)
         star = 6
-        if limited:
+        if limited == True: # "r6" != True
             up = (x2 < probs["limited_up_6"])
         else:
             up = (x2 < probs["up_6"])
@@ -85,7 +85,9 @@ class Gacha:
         self.nth = 0
         self.nth_target = 0
         self.nth_favor = 0
-        self.n6count = 0;
+        self.n6count = 0
+        self.up5_name = None
+        self.tenjou = False
     
     def set_banner(self, b):
         self.banner = gacha_data["banners"][b]
@@ -136,7 +138,8 @@ class Gacha:
         else:
             rate = probs["up_5"]
             lines.append(f"up角色合计 {rate*8/100}%, 6星基础出率 2%")
-
+        if self.banner.get("note", None):
+            lines.append("注记: %s"  % self.banner["note"])
         return "\n".join(lines)
         
 
@@ -157,7 +160,26 @@ class Gacha:
             result["up"] = False
             char_key = "star_%d" % result["star"]
         result["char"] = cname = random.sample(self.pool[char_key], 1)[0]
+        
+        # 6星天井特判
+        if self.banner.get("tenjou", None):
+            tenjou = self.banner["tenjou"]
+            if self.nth == tenjou["n"] and not self.char_count.get(tenjou["name"], None):
+                print(f"井了 - {tenjou['n']}")
+                result = { "char": tenjou["name"], "star": 6, "up": True, "tenjou": True }
+                cname = tenjou["name"]
+                self.tenjou = True
+        # 5星特判
+        if result["star"] == 5 and self.banner.get("tenjou_5", None) and self.up5_name != "used":
+            if char_key == "up_5" and not self.up5_name:
+                self.up5_name = cname # 第一次抽到up5，标记
+            elif self.up5_name:
+                print("触发up5星保底")
+                result["char"] = cname = random.sample([x for x in self.pool["up_5"] if x != self.up5_name], 1)[0]
+                self.up5_name = "used"
+                
         self.result_list.append(cname)
+        
         # 记录抽卡类型
         type = ("up_%d" if result["up"] else "other_%d") % result["star"]
         self.count[type] = self.count.get(type, 0) + 1
@@ -225,7 +247,7 @@ class Gacha:
         if self.nth_target > 0:
             line = "第%d抽首次获得up角色" % self.nth_target
             if self.banner["favor"] and self.nth_favor > 0:
-                if self.nth_favor > self.nth_target:
+                if self.nth_favor > self.nth_target or self.nth_favor == 0:
                     line += "，但是歪了"
                 line += "\n第%d抽首次获得目标角色" % self.nth_favor
             text.append(line)
@@ -234,7 +256,9 @@ class Gacha:
 
         # 评价
         judge = self.nth_favor if self.banner["favor"] else self.nth_target
-        if judge <= 25:
+        if judge == 0:
+            text.append("dame dane...")
+        elif judge <= 25:
             text.append("海猫亏到坐公交")
         elif judge < 50:
             text.append("可以了，您已经很欧了")
@@ -249,7 +273,8 @@ class Gacha:
             text.append(line)
         else:
             text.append("dame dane...")
-            
+        if self.tenjou:
+            text.append("吃井不忘挖井人")
         return "\n".join(text)
         
     def summarize_tenpull(self, rst):
@@ -261,6 +286,6 @@ class Gacha:
         
 if __name__ == "__main__":
     g = Gacha()
-    g.set_banner("月隐晦明")
+    g.set_banner("r6")
     pprint.pprint(g.banner)
     

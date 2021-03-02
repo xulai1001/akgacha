@@ -6,6 +6,7 @@ GitHub与问题反馈: https://github.com/xulai1001/akgacha
 
 更新日志
 ======
+# 3.3 修正一些问题，增加r6卡池测试
 # 2.28 增加素材一图流查询
 # 2.23 更新干员头像和新普池
 
@@ -42,4 +43,3 @@ GitHub与问题反馈: https://github.com/xulai1001/akgacha
 - 如果碰到找不到json文件的问题，尝试调整代码的working_path字符串。这部分还在调整中
 - 如果蹲饼报错或者不推送，尝试删除group_banner.json
 - 如果报ssl错误，可以尝试升级requests库到最新版本
-- 如果只抽出了陪跑角色而没有抽到主推角色，则不会有歪了的提示
