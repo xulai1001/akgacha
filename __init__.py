@@ -85,9 +85,14 @@ async def gacha_300(bot, ev: CQEvent):
     b = group_banner[gid]["banner"]
     g = Gacha()
     g.set_banner(b)
-    for i in range(0, 30):
-        g.ten_pull()
-    await bot.send(ev, g.summarize(), at_sender=True)
+    if b == "r6":
+        for i in range(0, 12):
+            g.ten_pull()
+        await bot.send(ev, g.summarize(True), at_sender=True)
+    else:
+        for i in range(0, 30):
+            g.ten_pull()
+        await bot.send(ev, g.summarize(), at_sender=True)
     
 @sv.on_fullmatch(("方舟刷本效率"))
 async def show_mats(bot, ev: CQEvent):

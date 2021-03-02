@@ -121,7 +121,7 @@ class Gacha:
         if banner_name == "普池": banner_name += " #%d" % self.banner["id"]
         lines = []
         lines.append(f"当前卡池: {banner_name}")
-        if self.banner["limited"]: lines.append("(限定池)")
+        if self.banner["limited"] == True: lines.append("(限定池)")
         # print(img_segment(main_pic))
         lines.append(f"主打角色: {' '.join(main_up)}")
         lines.append(f"{img_segment(main_pic)}")
@@ -133,7 +133,7 @@ class Gacha:
         if self.banner["favor"]:
             lines.append(f"目标角色: {self.banner['favor']}")
         if len(self.banner["up_6"]) > 0:
-            rate = probs["limited_up_6"] if self.banner["limited"] else probs["up_6"]
+            rate = probs["limited_up_6"] if self.banner["limited"] == True else probs["up_6"]
             lines.append(f"up角色合计 {rate/50}%, 6星基础出率 2%")
         else:
             rate = probs["up_5"]
@@ -238,8 +238,8 @@ class Gacha:
             yellow += y
         return (green, yellow)
     
-    def summarize(self):
-        pic = gen_team_pic(self.rare_list[6])
+    def summarize(self, show_5star=False):
+        pic = gen_team_pic(self.rare_list[6]) if not show_5star else gen_team_pic(self.rare_list[6] + self.rare_list[5])
         text = ["寻访结果:"]
         text.append(f"{img_segment(pic)}")
         text.append("☆6×%d ☆5×%d ☆4×%d ☆3×%d" % (self.count[6], self.count[5], self.count[4], self.count[3]))
