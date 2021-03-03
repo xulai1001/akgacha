@@ -162,6 +162,7 @@ async def weibo_do_bcast(rst):
         if (group_banner[gid].get("weibo_push", None)):
             print("推送至群 - %s" % gid)
             await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
+            await asyncio.sleep(1)
             group_banner[gid]["weibo_check"] = datetime.now().timestamp()
     save_group_banner()
 
