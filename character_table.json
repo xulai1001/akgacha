@@ -1,4 +1,14 @@
 {
+  "char_363_toddi": {
+    "name": "熔泉",
+    "rarity": 4,
+    "itemObtainApproach": "招募寻访"
+  },
+  "char_472_pasngr": {
+    "name": "异客",
+    "rarity": 5,
+    "itemObtainApproach": "招募寻访"
+  },
   "char_285_medic2": {
     "name": "Lancet-2",
     "description": "恢复友方单位生命，且不受<@ba.kw>部署数量</>限制，但再部署时间极长",
