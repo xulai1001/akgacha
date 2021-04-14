@@ -9,6 +9,7 @@ from hoshino import R, Service, priv, util
 from hoshino.typing import *
 from .akgacha import Gacha
 from .weibo import *
+from urllib import request
 
 working_path = "hoshino/modules/akgacha/"
 img_path = "./images"
@@ -100,21 +101,42 @@ async def show_mats(bot, ev: CQEvent):
     line = f'{img}'
     await bot.send(ev, line)
 
+def save_pic(url):
+    filename = working_path + "cache/" + os.path.basename(url)
+    if os.path.exists(filename):
+        print("save_pic: file exists - %s" % filename)
+    else:
+        resp = request.urlopen(url)
+        img = resp.read()
+        filename = working_path + "cache/" + os.path.basename(url)
+        print("save_pic %s" % filename)
+        with open(filename, "wb+") as f:
+            f.write(img)
+    return filename
+
 def format_weibo(blog):
     pprint.pprint(blog)
     lines = []
     lines.append("发布者: %s, 时间: %s" % (blog["username"], 
                  datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
                 ))
-    if blog.get("pics", None):
-        lines += [f'{MessageSegment.image(x)}' for x in blog["pics"]]
     if blog.get("media", None):
         lines += ["视频链接: %s" % blog["media"]]
-    lines.append(blog["text"])
+    # lines.append(blog["text"])
     lines.append("https://m.weibo.cn/status/%s" % blog["id"])
- #   pprint.pprint(lines)
-    return "\n".join(lines)
-    
+    # print(lines)
+    return lines
+
+def format_weibo_pics(blog):
+    lines = []
+    if blog.get("pics", None):
+        for x in blog["pics"]:
+           #  fn = save_pic(x)
+            img = MessageSegment.image(x)
+            lines.append(f"{img}")
+    print(lines)
+    return lines
+
 @sv.on_prefix(("吃饼", "饼呢"))
 async def weibo_check(bot, ev: CQEvent):
     gid = str(ev.group_id)
@@ -125,15 +147,19 @@ async def weibo_check(bot, ev: CQEvent):
     result = get_weibo()
     result_f = list(filter(lambda x: x["timestamp"] >= t_from, result))
     lines = []
+    print(result_f)
     if len(str(ev.message)) > 0:
         x = int(str(ev.message)) - 1
         if x>=0 and x<len(result):
             lines.append("第 %d 张旧饼内容:" % (x+1))
-            lines.append(format_weibo(result[x]))
+            lines += format_weibo(result[x])
+            lines += format_weibo_pics(result[x])
     else:
         n_new = len(result_f)
         lines.append("有 %d 张新饼" % n_new)
-        lines += [format_weibo(x) for x in result_f]
+        for x in result_f:
+            lines += format_weibo(x)
+            lines += format_weibo_pics(x)
         lines.append("一共有 %d 张饼，回复'吃饼 x'查看旧饼" % len(result))
     group_banner[gid]["weibo_check"] = t_now
     save_group_banner()
@@ -161,7 +187,7 @@ async def weibo_do_bcast(rst):
     for gid in group_banner.keys():
         if (group_banner[gid].get("weibo_push", None)):
             print("推送至群 - %s" % gid)
-            await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + format_weibo(rst))
+            await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + "\n".join(format_weibo(rst)))
             await asyncio.sleep(1)
             group_banner[gid]["weibo_check"] = datetime.now().timestamp()
     save_group_banner()
