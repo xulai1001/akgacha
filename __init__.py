@@ -7,6 +7,7 @@ from datetime import datetime
 import nonebot
 from hoshino import R, Service, priv, util
 from hoshino.typing import *
+from hoshino.util import DailyNumberLimiter
 from .akgacha import Gacha
 from .weibo import *
 from urllib import request
@@ -25,6 +26,12 @@ sv_help = '''
 [蹲饼/取消蹲饼] 为本群开启/关闭蹲饼
 '''.strip()
 sv = Service('akgacha', help_=sv_help, bundle="akgacha", enable_on_default=True)
+
+jewel_limit = DailyNumberLimiter(60000)
+tenjo_limit = DailyNumberLimiter(3)
+
+JEWEL_EXCEED_NOTICE = f'您今天已经抽过{jewel_limit.max}钻了，欢迎明早5点后再来！'
+TENJO_EXCEED_NOTICE = f'您今天已经抽过{tenjo_limit.max}张天井券了，欢迎明早5点后再来！
 
 group_banner = {}
 try:
@@ -65,6 +72,12 @@ async def set_pool(bot, ev: CQEvent):
             await gacha_info(bot, ev)
         else:
             await bot.finish(ev, f"没找到卡池: {name}")
+            
+async def check_jewel(ev):
+    if not jewel_limit.check(ev.user_id):
+        await bot.finish(ev, JEWEL_EXCEED_NOTICE, at_sender=True)
+    elif not tenjo_limit.check(ev.user_id):
+        await bot.finish(ev, TENJO_EXCEED_NOTICE, at_sender=True)
 
 @sv.on_prefix(("方舟十连"), only_to_me=True)
 async def gacha_10(bot, ev: CQEvent):
@@ -72,6 +85,11 @@ async def gacha_10(bot, ev: CQEvent):
     if not gid in group_banner:
         ak_group_init(gid)
     b = group_banner[gid]["banner"]
+    
+    # barrier
+    await check_jewel(ev)
+    jewel_limit.increase(ev.user_id, 6000)
+    
     g = Gacha()
     g.set_banner(b)
     g.rare_chance = False
@@ -84,6 +102,11 @@ async def gacha_300(bot, ev: CQEvent):
     if not gid in group_banner:
         ak_group_init(gid)
     b = group_banner[gid]["banner"]
+    
+    # barrier
+    await check_jewel(ev)
+    tenjo_limit.increase(ev.user_id)
+    
     g = Gacha()
     g.set_banner(b)
     if b == "r6":
