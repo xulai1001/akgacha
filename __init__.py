@@ -203,7 +203,8 @@ async def weibo_check(bot, ev: CQEvent):
         await bot.send(ev, "\n".join(lines))
         #print(nodes)
         #await bot.send_group_forward_msg(group_id=gid, messages=[ { "type": "node", "data": { "name": "test", "uin": "133333333", "content": "test"}}])
-        await bot.send_group_forward_msg(group_id=gid, messages=nodes)
+        if len(nodes) > 0:
+            await bot.send_group_forward_msg(group_id=gid, messages=nodes)
     except Exception:
         print(traceback.format_exc())
         try:
