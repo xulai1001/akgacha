@@ -1,5 +1,6 @@
 #encoding:utf-8
 import os, random, re, pprint, json, math, asyncio, threading
+import traceback
 from io import BytesIO
 from PIL import Image
 from collections import defaultdict
@@ -27,11 +28,12 @@ sv_help = '''
 '''.strip()
 sv = Service('akgacha', help_=sv_help, bundle="akgacha", enable_on_default=True)
 
-jewel_limit = DailyNumberLimiter(60000)
+jewel_limit = DailyNumberLimiter(18000)
 tenjo_limit = DailyNumberLimiter(3)
 
-JEWEL_EXCEED_NOTICE = f'您今天已经抽过{jewel_limit.max}钻了，欢迎明早5点后再来！'
-TENJO_EXCEED_NOTICE = f'您今天已经抽过{tenjo_limit.max}张天井券了，欢迎明早5点后再来！
+JEWEL_EXCEED_NOTICE = f"您今天已经抽过{jewel_limit.max}钻了，欢迎明早5点后再来！"
+
+TENJO_EXCEED_NOTICE = f"您今天已经抽过{tenjo_limit.max}张天井券了，欢迎明早5点后再来！"
 
 group_banner = {}
 try:
@@ -73,7 +75,7 @@ async def set_pool(bot, ev: CQEvent):
         else:
             await bot.finish(ev, f"没找到卡池: {name}")
             
-async def check_jewel(ev):
+async def check_jewel(bot, ev):
     if not jewel_limit.check(ev.user_id):
         await bot.finish(ev, JEWEL_EXCEED_NOTICE, at_sender=True)
     elif not tenjo_limit.check(ev.user_id):
@@ -87,7 +89,7 @@ async def gacha_10(bot, ev: CQEvent):
     b = group_banner[gid]["banner"]
     
     # barrier
-    await check_jewel(ev)
+    await check_jewel(bot, ev)
     jewel_limit.increase(ev.user_id, 6000)
     
     g = Gacha()
@@ -104,7 +106,7 @@ async def gacha_300(bot, ev: CQEvent):
     b = group_banner[gid]["banner"]
     
     # barrier
-    await check_jewel(ev)
+    await check_jewel(bot, ev)
     tenjo_limit.increase(ev.user_id)
     
     g = Gacha()
@@ -137,28 +139,36 @@ def save_pic(url):
             f.write(img)
     return filename
 
-def format_weibo(blog):
-    pprint.pprint(blog)
-    lines = []
-    lines.append("发布者: %s, 时间: %s" % (blog["username"], 
-                 datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
-                ))
-    if blog.get("media", None):
-        lines += ["视频链接: %s" % blog["media"]]
-    # lines.append(blog["text"])
-    lines.append("https://m.weibo.cn/status/%s" % blog["id"])
-    # print(lines)
-    return lines
+def make_cqnode(content, name=0, uin=0):
+    _name = "库兰兰发饼机"
+    _uin = "800830064"
+    return {
+        "type": "node",
+        "data": {
+            "name": _name,
+            "uin": _uin,
+            "content": content
+        }
+    }
 
-def format_weibo_pics(blog):
+# 为避免消息过长必须分段
+def format_weibo(blog):
+    # pprint.pprint(blog)
     lines = []
+    nodes = []
+    lines.append("发布者: %s, 时间: %s" % (
+                  blog["username"], datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
+                ))
+    lines.append("https://m.weibo.cn/status/%s" % blog["id"])
+    nodes.append(make_cqnode( MessageSegment.text("\n".join(lines)) ))
+    #nodes.append(make_cqnode( MessageSegment.text(blog["text"]) )) # too long!
+    if blog.get("media", None):
+        nodes.append(make_cqnode( MessgeSegment( {"type": "video", "data": { "file": blog["media"] } } )) )
     if blog.get("pics", None):
         for x in blog["pics"]:
-           #  fn = save_pic(x)
-            img = MessageSegment.image(x)
-            lines.append(f"{img}")
-    print(lines)
-    return lines
+            nodes.append(make_cqnode( MessageSegment.image(x)) )
+    pprint.pprint(nodes)
+    return nodes
 
 @sv.on_prefix(("吃饼", "饼呢"))
 async def weibo_check(bot, ev: CQEvent):
@@ -170,23 +180,37 @@ async def weibo_check(bot, ev: CQEvent):
     result = get_weibo()
     result_f = list(filter(lambda x: x["timestamp"] >= t_from, result))
     lines = []
+    nodes = []
     print(result_f)
     if len(str(ev.message)) > 0:
         x = int(str(ev.message)) - 1
         if x>=0 and x<len(result):
             lines.append("第 %d 张旧饼内容:" % (x+1))
-            lines += format_weibo(result[x])
-            lines += format_weibo_pics(result[x])
+            # lines.append(format_weibo(result[x]))
+            nodes += format_weibo(result[x])
+            lines.append(result[x]["text"])
     else:
         n_new = len(result_f)
         lines.append("有 %d 张新饼" % n_new)
         for x in result_f:
-            lines += format_weibo(x)
-            lines += format_weibo_pics(x)
+            nodes += format_weibo(x)
+            lines.append(x["text"])
         lines.append("一共有 %d 张饼，回复'吃饼 x'查看旧饼" % len(result))
     group_banner[gid]["weibo_check"] = t_now
     save_group_banner()
-    await bot.send(ev, "\n".join(lines))
+    # try send
+    try:
+        await bot.send(ev, "\n".join(lines))
+        #print(nodes)
+        #await bot.send_group_forward_msg(group_id=gid, messages=[ { "type": "node", "data": { "name": "test", "uin": "133333333", "content": "test"}}])
+        await bot.send_group_forward_msg(group_id=gid, messages=nodes)
+    except Exception:
+        print(traceback.format_exc())
+        try:
+            await bot.send(ev, "微博消息发送失败")
+            # await bot.send(ev, traceback.format_exc())
+        except Exception:
+            print(traceback.format_exc())
 
 @sv.on_fullmatch(("蹲饼"))
 async def weibo_push_enable(bot, ev: CQEvent):
@@ -209,9 +233,18 @@ async def weibo_do_bcast(rst):
     bot = nonebot.get_bot()
     for gid in group_banner.keys():
         if (group_banner[gid].get("weibo_push", None)):
-            print("推送至群 - %s" % gid)
-            await bot.send_group_msg(group_id=gid, message="检测到微博更新\n" + "\n".join(format_weibo(rst)))
-            await asyncio.sleep(1)
+            try:
+                print("推送至群 - %s" % gid)
+                await bot.send_group_msg(group_id=gid, message="检测到微博更新\n")
+                await bot.send_group_forward_msg(group_id=gid, messages=format_weibo(rst))
+                await asyncio.sleep(1)
+            except Exception:
+                try:
+                    traceback.print_exc()
+                    await bot.send_group_msg(group_id=gid, message="蹲饼消息推送失败")
+                except Exception:
+                    print(traceback.print_exc())
+
             group_banner[gid]["weibo_check"] = datetime.now().timestamp()
     save_group_banner()
 

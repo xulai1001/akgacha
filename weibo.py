@@ -39,7 +39,7 @@ def get_weibo(uid=6279793937):
         # RubyTime: 'Thu Jan 28 11:05:06 +0800 2021'
         item["timestamp"] = datetime.strptime(item["created_at"], "%a %b %d %H:%M:%S %z %Y").timestamp()
         # pics
-        item["pics"] = [x["url"] for x in cd["mblog"].get("pics", [])]
+        item["pics"] = [x["url"].replace("orj360", "large") for x in cd["mblog"].get("pics", [])]
         # videos
         try:
             item["media"] = cd["mblog"]["page_info"]["media_info"]["stream_url_hd"]
@@ -48,5 +48,5 @@ def get_weibo(uid=6279793937):
     return sorted(ret, key=lambda x: x["timestamp"], reverse=True)
 
 if __name__ == "__main__":
-    pprint.pprint(get_weibo(uid))
+    pprint.pprint(get_weibo())
     
