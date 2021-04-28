@@ -140,8 +140,8 @@ def save_pic(url):
     return filename
 
 def make_cqnode(content, name=0, uin=0):
-    _name = "库兰兰发饼机"
-    _uin = "800830064"
+    _name = "鹰小姐"
+    _uin = "2087332430"
     return {
         "type": "node",
         "data": {
