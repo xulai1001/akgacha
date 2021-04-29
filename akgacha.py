@@ -102,7 +102,7 @@ class Gacha:
             for key in self.banner["multi"].keys():
                 id = get_charid(key)
                 rarity = "star_%d" % (char_data[id]["rarity"] + 1)
-                n = self.banner["multi"][key]-1
+                n = self.banner["multi"][key]
                 print(id, rarity, n)
                 self.pool[rarity] += [key] * n
                 print(self.pool[rarity])                
