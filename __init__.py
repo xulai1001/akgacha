@@ -163,7 +163,7 @@ def format_weibo(blog):
     nodes.append(make_cqnode( MessageSegment.text("\n".join(lines)) ))
     #nodes.append(make_cqnode( MessageSegment.text(blog["text"]) )) # too long!
     if blog.get("media", None):
-        nodes.append(make_cqnode( MessgeSegment( {"type": "video", "data": { "file": blog["media"] } } )) )
+        nodes.append(make_cqnode( MessageSegment( {"type": "video", "data": { "file": blog["media"] } } )) )
     if blog.get("pics", None):
         for x in blog["pics"]:
             nodes.append(make_cqnode( MessageSegment.image(x)) )

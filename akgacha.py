@@ -155,7 +155,7 @@ class Gacha:
         else:
             result = pull_naive(self.rate_6(), self.banner["limited"], False)
         # 联合寻访
-        if self.banner["no_other_6"]: result["up"] = True
+        if self.banner["no_other_6"] and result["star"] >= 4: result["up"] = True
         # 抽人
         char_key = "%s_%d" % ("up" if result["up"] else "star", result["star"])
         if len(self.pool[char_key]) == 0:

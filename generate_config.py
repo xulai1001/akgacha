@@ -102,7 +102,7 @@ try:
     "star_3": [],
     "other_chars": [],
     "recruit_chars": ["艾丝黛尔", "火神", "因陀罗"],
-    "limited_chars": ["W", "年", "迷迭香", "夕", "灰烬", "闪击", "霜华", "浊心斯卡蒂", "凯尔希"]
+    "limited_chars": ["W", "年", "迷迭香", "夕", "灰烬", "闪击", "霜华", "浊心斯卡蒂"]
     }
 
     for k in chars.keys():
