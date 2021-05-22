@@ -129,7 +129,7 @@ class Gacha:
             lines.append(f"其他up角色: {' '.join(other_up)}")
             lines.append(f"{img_segment(other_pic)}")
         if self.banner["no_other_6"]:
-            lines.append("仅出现up的六星角色")
+            lines.append("仅出现up的5/6星角色，不会出现其他角色")
         if self.banner["favor"]:
             lines.append(f"目标角色: {self.banner['favor']}")
         if len(self.banner["up_6"]) > 0:
@@ -154,6 +154,8 @@ class Gacha:
             result["保底"] = True
         else:
             result = pull_naive(self.rate_6(), self.banner["limited"], False)
+        # 联合寻访
+        if self.banner["no_other_6"]: result["up"] = True
         # 抽人
         char_key = "%s_%d" % ("up" if result["up"] else "star", result["star"])
         if len(self.pool[char_key]) == 0:
