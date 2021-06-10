@@ -123,7 +123,7 @@ async def gacha_300(bot, ev: CQEvent):
 @sv.on_fullmatch(("方舟刷本效率"))
 async def show_mats(bot, ev: CQEvent):
     img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "ak-mats.jpg")}')
-    line = f'{img}'
+    line = f'{img}\n明日方舟素材刷取一图流-等效绿票算法版\nhttps://hguandl.com/yituliu/yituliu.jsp'
     await bot.send(ev, line)
 
 def save_pic(url):
