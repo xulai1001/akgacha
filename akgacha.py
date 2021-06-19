@@ -1,16 +1,27 @@
 #encoding:utf-8
-import pprint, json, random, copy, math
+import pprint, json, random, copy, math, os
 from io import BytesIO
 from PIL import Image
 from nonebot import MessageSegment
 from hoshino import R
+from hoshino.config import RES_DIR
 from hoshino.util import pic2b64
-working_path = "hoshino/modules/akgacha/"
 
+working_path = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 #working_path=""
-img_path = "akgacha"    # res/img/akgacha/*.png
-char_data = json.load(open(working_path + "character_table.json", encoding="utf-8"))
-gacha_data = json.load(open(working_path + "config.json", encoding="utf-8"))
+img_path = os.path.join(RES_DIR, "img","akgacha")  
+
+char_data = {}
+gacha_data = {}
+
+def data_init():
+    global char_data,gacha_data
+    char_data = json.load(
+        open(os.path.join(working_path, "character_table.json"), encoding="utf-8"))
+    gacha_data = json.load(
+        open(os.path.join(working_path, "config.json"), encoding="utf-8"))
+
+data_init()
 
 probs = {
     "up_6": 50,
@@ -63,7 +74,7 @@ def gen_team_pic(team, size=64, ncol=5):
     nrow = math.ceil(len(team)/ncol)
     des = Image.new("RGBA", (ncol * size, nrow * size), (0,0,0, 0))
     for i, name in enumerate(team):
-        face = R.img("%s/%s.png" % (img_path, get_charid(name))).open().convert("RGBA").resize((size, size), Image.LANCZOS)
+        face = Image.open(os.path.join(img_path, f"{get_charid(name)}.png"),).convert("RGBA").resize((size, size), Image.LANCZOS)
         x = i % ncol
         y = math.floor(i / ncol)
         des.paste(face, (x * size, y * size), face)
