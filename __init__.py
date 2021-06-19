@@ -46,7 +46,7 @@ def save_group_banner():
         json.dump(group_banner, f, ensure_ascii=False)
         
 def ak_group_init(gid):
-    group_banner[gid] = { "banner": "普池 #52", "weibo_check": datetime.now().timestamp(), "weibo_push": False }
+    group_banner[gid] = { "banner": "普池#52", "weibo_check": datetime.now().timestamp(), "weibo_push": False }
         
 @sv.on_fullmatch(("查看方舟卡池"))
 async def gacha_info(bot, ev: CQEvent):
