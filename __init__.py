@@ -11,6 +11,7 @@ from hoshino.typing import *
 from hoshino.util import DailyNumberLimiter
 from .akgacha import Gacha
 from .weibo import *
+from .prtsres import *
 from urllib import request
 
 working_path = "hoshino/modules/akgacha/"
@@ -45,7 +46,7 @@ def save_group_banner():
         json.dump(group_banner, f, ensure_ascii=False)
         
 def ak_group_init(gid):
-    group_banner[gid] = { "banner": "普池", "weibo_check": 1613000000, "weibo_push": False }
+    group_banner[gid] = { "banner": "普池#52", "weibo_check": datetime.now().timestamp(), "weibo_push": False }
         
 @sv.on_fullmatch(("查看方舟卡池"))
 async def gacha_info(bot, ev: CQEvent):
@@ -63,8 +64,16 @@ async def set_pool(bot, ev: CQEvent):
     name = util.normalize_str(ev.message.extract_plain_text())
     if not name:
         # 列出当前卡池
-        lines = ["当期卡池:"] + list(gacha_data["banners"].keys()) + ["使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
-        await bot.finish(ev, "\n".join(lines))
+        current_time=datetime.now().timestamp()
+        list_cur=[]
+        for gacha in gacha_data["banners"]:
+            if int(gacha_data["banners"][gacha]["end"])>int(current_time):
+                list_cur.append(gacha)
+        if list_cur:
+            lines = ["当期卡池:"] + list_cur + ["", "使用命令[切换方舟卡池 （卡池名）]进行设置","使用命令[查看方舟历史卡池]查看全部往期卡池"]
+            await bot.finish(ev, "\n".join(lines))
+        else:
+            await bot.finish(ev, "未找到正在进行中的卡池……请联系维护组更新卡池信息或使用命令[查看方舟历史卡池]查看全部往期卡池")
     else:
         if name in gacha_data["banners"].keys():
             gid = str(ev.group_id)
@@ -75,6 +84,11 @@ async def set_pool(bot, ev: CQEvent):
         else:
             await bot.finish(ev, f"没找到卡池: {name}")
             
+@sv.on_fullmatch(("查看方舟历史卡池","查看舟游历史卡池"))
+async def history_pool(bot, ev: CQEvent):
+    lines = ["全部卡池:"] + list(gacha_data["banners"].keys()) + ["", "使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+    await bot.finish(ev, "\n".join(lines))
+
 async def check_jewel(bot, ev):
     if not jewel_limit.check(ev.user_id):
         await bot.finish(ev, JEWEL_EXCEED_NOTICE, at_sender=True)
@@ -274,3 +288,59 @@ async def weibo_push():
         ts_push = datetime.now().timestamp()
         cnt += 1
 
+
+@sv.on_fullmatch(("更新方舟基础数据","更新舟游基础数据"))
+async def update_table(bot, ev: CQEvent):
+    global char_data
+    if not priv.check_priv(ev, priv.SUPERUSER):
+        await bot.send(ev,'此命令仅维护组可用，请联系维护组~')
+        return
+    await bot.send(ev, '正在更新请稍候……')
+    try:
+        result = await update_chara_db()
+        if result:
+            data_init()
+            char_data = json.load(open(os.path.join(working_path, "character_table.json"), encoding="utf-8"))
+            await bot.send(ev, '更新基础数据成功！')
+        else:
+            await bot.send(ev, '基础数据已是最新版本！')
+    except Exception as e:
+        print(format_exc())
+        await bot.send(ev, f'更新失败……{e}')
+
+
+@sv.on_fullmatch(("更新方舟卡池","更新舟游卡池"))
+async def update_pool(bot, ev: CQEvent):
+    global gacha_data
+    if not priv.check_priv(ev, priv.SUPERUSER):
+        await bot.send(ev,'此命令仅维护组可用，请联系维护组~')
+        return
+    await bot.send(ev, '正在更新请稍候……')
+    try:
+        result = await update_config()
+        if result:
+            data_init()
+            gacha_data = json.load(open(os.path.join(working_path, "config.json"), encoding="utf-8"))
+            await bot.send(ev, '更新卡池成功！')
+        else:
+            await bot.send(ev, '卡池已是最新版本！')
+    except Exception as e:
+        print(format_exc())
+        await bot.send(ev, f'更新失败……{e}')
+
+
+@sv.on_fullmatch(("更新方舟资源","更新舟游资源"))
+async def update_pool(bot, ev: CQEvent):
+    if not priv.check_priv(ev, priv.SUPERUSER):
+        await bot.send(ev,'此命令仅维护组可用，请联系维护组~')
+        return
+    await bot.send(ev, '正在更新请稍候……')
+    try:
+        result = await update_res()
+        if result:
+            await bot.send(ev, f'更新资源成功！已新增{result}张图像！')
+        else:
+            await bot.send(ev, '资源已是最新版本！')
+    except Exception as e:
+        print(format_exc())
+        await bot.send(ev, f'更新失败……{e}')
