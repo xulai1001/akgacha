@@ -261,7 +261,7 @@ class Gacha:
             line = "第%d抽首次获得up角色" % self.nth_target
             if self.banner["favor"] and self.nth_favor > 0:
                 if self.nth_favor > self.nth_target or self.nth_favor == 0:
-                    line += "，但是凯尔希，嘿嘿~凯尔希"
+                    line += "，但是歪了"
                 line += "\n第%d抽首次获得目标角色" % self.nth_favor
             text.append(line)
         else:

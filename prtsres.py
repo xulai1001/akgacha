@@ -26,6 +26,7 @@ proxies={ 'http':'socks5h://127.0.0.1:1080',
 
 async def update_res(): 
     count=0
+    print("- 更新res资源包...")
     chars = json.load(open(os.path.join(working_path, "character_table.json"), encoding="utf-8"))
 
     for k in chars.keys():
@@ -65,6 +66,7 @@ async def update_res():
         png_path = os.path.join(half_dir, filename)
         if os.path.exists(png_path):
             continue
+        print(" - 下载", png_path)
         png = await (await aiorequests.get(filelink, timeout=20)).content
         count+=1
         with open(png_path, 'wb') as f:
@@ -94,6 +96,7 @@ async def update_res():
             continue
         png = await (await aiorequests.get(filelink, timeout=20)).content
         count+=1
+        print(" - 下载", png_path)
         with open(png_path, 'wb') as f:
             f.write(png)
         
@@ -101,6 +104,7 @@ async def update_res():
 
 
 async def update_chara_db():
+    print("- 更新 character_table...")
     global char_data
     try:
         res = await aiorequests.get("https://gitcdn.link/repo/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=10)
@@ -124,6 +128,7 @@ async def update_chara_db():
 async def update_config():
     global gacha_data
 
+    print("- 更新方舟卡池...")
     template = {"limited": False, "no_other_6": False, "favor": '',
                 "open": '', "end": '', "up_6": [], "up_5": [], "up_4": [], "exclude": []}
 
@@ -216,6 +221,7 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
+        print(name)
         cur["exclude"] = exclude
         banner[name] = cur
 
@@ -262,6 +268,7 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
+        print(name)
         cur["exclude"] = exclude
         banner[name] = cur
 
@@ -318,6 +325,7 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
+        print(gachaid)
         cur["exclude"] = exclude
         banner[f'普池#{gachaid}'] = cur
 
