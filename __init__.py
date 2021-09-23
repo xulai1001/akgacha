@@ -9,7 +9,7 @@ import nonebot
 from hoshino import R, Service, priv, util
 from hoshino.typing import *
 from hoshino.util import DailyNumberLimiter
-from .akgacha import Gacha
+from .akgacha import *
 from .weibo import *
 from .prtsres import *
 from urllib import request
@@ -142,7 +142,7 @@ async def gacha_300(bot, ev: CQEvent):
     
 @sv.on_fullmatch(("方舟刷本效率"))
 async def show_mats(bot, ev: CQEvent):
-    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "ak-mats.jpg")}')
+    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "ak-mats.png")}')
     line = f'{img}\n明日方舟素材刷取一图流-等效绿票算法版\nhttps://hguandl.com/yituliu/yituliu.jsp'
     await bot.send(ev, line)
 
@@ -279,6 +279,7 @@ async def weibo_push():
     # print("- get_weibo")
     hr = datetime.now().hour
     if (hr<10 or hr>19) and (cnt % 3 != 0):
+        cnt += 1
         print("- skipped")
     else:
         uids = [6279793937, 1652903644]
@@ -311,7 +312,7 @@ async def update_table(bot, ev: CQEvent):
         else:
             await bot.send(ev, '基础数据已是最新版本！')
     except Exception as e:
-        print(format_exc())
+        print(traceback.format_exc())
         await bot.send(ev, f'更新失败……{e}')
 
 
@@ -329,9 +330,10 @@ async def update_pool(bot, ev: CQEvent):
             gacha_data = json.load(open(os.path.join(working_path, "config.json"), encoding="utf-8"))
             await bot.send(ev, '更新卡池成功！')
         else:
+            data_init()
             await bot.send(ev, '卡池已是最新版本！')
     except Exception as e:
-        print(format_exc())
+        print(traceback.format_exc())
         await bot.send(ev, f'更新失败……{e}')
 
 
