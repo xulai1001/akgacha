@@ -142,8 +142,8 @@ async def gacha_300(bot, ev: CQEvent):
     
 @sv.on_fullmatch(("方舟刷本效率"))
 async def show_mats(bot, ev: CQEvent):
-    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "ak-mats.png")}')
-    line = f'{img}\n明日方舟素材刷取一图流-等效绿票算法版\nhttps://hguandl.com/yituliu/yituliu.jsp'
+    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "yituliu.jpg")}')
+    line = f'{img}\n明日方舟素材刷取一图流-来源：\nhttps://ark.yituliu.site/'
     await bot.send(ev, line)
 
 def save_pic(url):
@@ -258,7 +258,7 @@ async def weibo_do_bcast(rst):
                 print("推送至群 - %s" % gid)
                 await bot.send_group_msg(group_id=gid, message="检测到微博更新\n")
                 await bot.send_group_forward_msg(group_id=gid, messages=format_weibo(rst))
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
             except Exception:
                 try:
                     traceback.print_exc()
@@ -352,3 +352,21 @@ async def update_pool(bot, ev: CQEvent):
     except Exception as e:
         print(format_exc())
         await bot.send(ev, f'更新失败……{e}')
+
+@sv.on_prefix(("方舟dps"))
+async def akdata_link(bot, ev: CQEvent):
+    # print(ev.message)
+    char = get_charid(str(ev.message))
+    if not char:
+        await bot.send(ev, "暂未收录该干员，敬请期待")
+    else:
+        await bot.send(ev, f"https://viktorlab.cn/akdata/dps/#{char}")
+
+@sv.on_prefix(("专精收益"))
+async def akdata_mastery(bot, ev: CQEvent):
+    # print(ev.message)
+    char = get_charid(str(ev.message))
+    if not char:
+        await bot.send(ev, "暂未收录该干员，敬请期待")
+    else:
+        await bot.send(ev, f"https://viktorlab.cn/akdata/mastery/#{char}")
