@@ -289,9 +289,11 @@ async def weibo_push():
             result.append(get_weibo(x))
             await asyncio.sleep(3)
         for item in result:
-            if item[0]["timestamp"] >= ts_push:
-                print("- weibo_push: 检测到微博更新")
-                await weibo_do_bcast(item[0])
+            try:
+                if item[0]["timestamp"] >= ts_push:
+                    print("- weibo_push: 检测到微博更新")
+                    await weibo_do_bcast(item[0])
+            except: pass
         ts_push = datetime.now().timestamp()
         cnt += 1
 
@@ -370,3 +372,38 @@ async def akdata_mastery(bot, ev: CQEvent):
         await bot.send(ev, "暂未收录该干员，敬请期待")
     else:
         await bot.send(ev, f"https://viktorlab.cn/akdata/mastery/#{char}")
+
+@sv.on_prefix(("游戏公告", "方舟游戏公告"))
+async def ak_comm(bot, ev: CQEvent):
+    resp = request.urlopen(u"https://ak-conf.hypergryph.com/config/prod/announce_meta/Android/announcement.meta.json")
+    result = json.loads(resp.read().decode())
+    x=0
+    if len(str(ev.message))>0:
+        x=int(str(ev.message))
+    if x==0:
+        if result.get("focusAnnounceId", None):
+            aid = result["focusAnnounceId"]
+            item = next(x for x in result["announceList"] if x.get("announceId", None) == aid)
+            if item:
+                title = item["title"].replace("\n", " ")
+                link = item["webUrl"]
+                image = f'file:///{os.path.abspath(working_path)}/dev.png'
+
+                lines = []
+                lines.append("明日方舟游戏公告: " + title)
+                lines.append(f"发布日期: {item['month']}-{item['day']}")
+                lines.append(f"[CQ:share,url={link}]")
+                lines.append(f"一共有 {len(result['announceList'])} 条公告")
+                await bot.send(ev, "\n".join(lines))
+    else:
+        item = result["announceList"][x-1]
+        if item:
+            title = item["title"].replace("\n", " ")
+            link = item["webUrl"]
+
+            lines = []
+            lines.append(f"第 {x} 条公告内容:" + title)
+            lines.append(f"发布日期: {item['month']}-{item['day']}")
+            lines.append(f"[CQ:share,url={link}]")
+            await bot.send(ev, "\n".join(lines))
+
