@@ -12,6 +12,7 @@ from hoshino.util import DailyNumberLimiter
 from .akgacha import *
 from .weibo import *
 from .prtsres import *
+from .browser import *
 from urllib import request
 
 working_path = "hoshino/modules/akgacha/"
@@ -140,9 +141,9 @@ async def gacha_300(bot, ev: CQEvent):
             g.ten_pull()
         await bot.send(ev, g.summarize(), at_sender=True)
     
-@sv.on_fullmatch(("方舟刷本效率"))
+@sv.on_fullmatch(("方舟素材"))
 async def show_mats(bot, ev: CQEvent):
-    img = MessageSegment.image(f'file:///{os.path.abspath(working_path + "yituliu.jpg")}')
+    img = MessageSegment.image("base64://" + browser_yituliu())
     line = f'{img}\n明日方舟素材刷取一图流-来源：\nhttps://ark.yituliu.site/'
     await bot.send(ev, line)
 
