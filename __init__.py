@@ -21,18 +21,24 @@ char_data = json.load(open(working_path + "character_table.json", encoding="utf-
 gacha_data = json.load(open(working_path + "config.json", encoding="utf-8"))
 
 sv_help = '''
-[@Bot方舟十连] 明日方舟抽卡
-[@Bot方舟来一井] 龙门币算什么，看我18w合成玉
+# 抽卡模拟相关
+[@机器人 方舟十连] 明日方舟抽卡
+[@机器人 方舟来一井] 300抽
 [查看方舟卡池] 当前卡池信息
-[切换方舟卡池] 更改卡池
-[查看方舟历史卡池] 查看可抽的所有卡池
-[饼呢/吃饼] 查看微博消息
-[蹲饼/取消蹲饼] 为本群开启/关闭蹲饼
-------
-管理命令:
+[切换方舟卡池 x] 更改卡池到x，可用查看历史卡池命令列出可用的名字
+[查看方舟历史卡池] 查看可抽的所有卡池名（长）
+
+# 抽卡管理命令:
 [更新方舟基础数据] 更新角色数据库
 [更新方舟卡池] 更新卡池信息
-[更新方舟资源] 下载头像包到/res/img/akgacha/
+[更新方舟资源] 下载头像包到/res/img/akgacha/，具体进程请在后台查看
+
+# 信息查询命令：
+[饼呢 x] 查看方舟官方微博消息
+[蹲饼/取消蹲饼] 开启、关闭蹲饼推送
+[方舟素材|材料|刷图] 显示ark.yituliu.site的素材效率一图流，实时更新。注意：此功能需要配置chromedriver和selenium
+[方舟dps 干员名] 跳转到DPS计算器的指定干员
+[专精收益 干员名] 跳转到专精收益计算器的指定干员页面
 '''.strip()
 sv = Service('akgacha', help_=sv_help, bundle="akgacha", enable_on_default=True)
 
