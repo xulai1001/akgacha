@@ -18,10 +18,17 @@ options.add_argument('--ignore-certificate-errors-spki-list')
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
-logger.info('初始化Selenium ...')
-driver1 = webdriver.Chrome(chrome_options=options)
+driver1 = None
+
+def init_browser():
+    global driver1
+    logger.info('初始化Selenium ...')
+    driver1 = webdriver.Chrome(chrome_options=options)
 
 def browser_yituliu():
+    global driver1
+    if not driver1:
+        init_browser()
     url = f'https://ark.yituliu.site'
     logger.info(f"akgacha-yituliu: {url}")
     driver = driver1

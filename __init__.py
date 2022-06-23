@@ -141,7 +141,7 @@ async def gacha_300(bot, ev: CQEvent):
             g.ten_pull()
         await bot.send(ev, g.summarize(), at_sender=True)
     
-@sv.on_fullmatch(("方舟素材"))
+@sv.on_prefix(("方舟素材", "方舟材料", "方舟一图流", "方舟刷", "方舟养成"))
 async def show_mats(bot, ev: CQEvent):
     img = MessageSegment.image("base64://" + browser_yituliu())
     line = f'{img}\n明日方舟素材刷取一图流-来源：\nhttps://ark.yituliu.site/'
