@@ -59,7 +59,7 @@ def save_group_banner():
         json.dump(group_banner, f, ensure_ascii=False)
         
 def ak_group_init(gid):
-    group_banner[gid] = { "banner": "普池#52", "weibo_check": datetime.now().timestamp(), "weibo_push": False }
+    group_banner[gid] = { "banner": "普池#70", "weibo_check": datetime.now().timestamp(), "weibo_push": False }
         
 @sv.on_fullmatch(("查看方舟卡池"))
 async def gacha_info(bot, ev: CQEvent):
@@ -183,11 +183,18 @@ def format_weibo(blog):
     # pprint.pprint(blog)
     lines = []
     nodes = []
-    lines.append("发布者: %s, 时间: %s" % (
-                  blog["username"], datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
-                ))
+    # lines.append("发布者: %s, 时间: %s" % (
+    #               blog["username"], datetime.fromtimestamp(blog["timestamp"]).strftime("%m-%d %H:%M:%S")
+    #             ))
+    lines.append(f"时间:{datetime.fromtimestamp(blog['timestamp']).strftime('%m-%d %H:%M:%S')}")
     lines.append("https://m.weibo.cn/status/%s" % blog["id"])
     nodes.append(make_cqnode( MessageSegment.text("\n".join(lines)) ))
+    for wb_text in blog["text"].split('\n'):
+        nodes.append(
+            make_cqnode(
+                MessageSegment.text(wb_text)
+            )
+        )
     #nodes.append(make_cqnode( MessageSegment.text(blog["text"]) )) # too long!
     if blog.get("media", None):
         nodes.append(make_cqnode( MessageSegment( {"type": "video", "data": { "file": blog["media"] } } )) )
@@ -215,13 +222,11 @@ async def weibo_check(bot, ev: CQEvent):
             lines.append("第 %d 张旧饼内容:" % (x+1))
             # lines.append(format_weibo(result[x]))
             nodes += format_weibo(result[x])
-            lines.append(result[x]["text"])
     else:
         n_new = len(result_f)
         lines.append("有 %d 张新饼" % n_new)
         for x in result_f:
             nodes += format_weibo(x)
-            lines.append(x["text"])
         lines.append("一共有 %d 张饼，回复'吃饼 x'查看旧饼" % len(result))
     group_banner[gid]["weibo_check"] = t_now
     save_group_banner()
@@ -279,7 +284,7 @@ async def weibo_do_bcast(rst):
 ts_push = datetime.now().timestamp()
 cnt = 0
 
-@sv.scheduled_job("interval", seconds=15, jitter=5)
+@sv.scheduled_job("interval", seconds=300, jitter=5)
 async def weibo_push():
     global ts_push
     global cnt
