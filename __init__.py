@@ -36,6 +36,7 @@ sv_help = '''
 # 信息查询命令：
 [饼呢 x] 查看方舟官方微博消息
 [蹲饼/取消蹲饼] 开启、关闭蹲饼推送
+[方舟游戏公告] 查看明日方舟游戏公告
 [方舟素材|材料|刷图] 显示ark.yituliu.site的素材效率一图流，实时更新。注意：此功能需要配置chromedriver和selenium
 [方舟dps 干员名] 跳转到DPS计算器的指定干员
 [专精收益 干员名] 跳转到专精收益计算器的指定干员页面
@@ -188,19 +189,19 @@ def format_weibo(blog):
                 ))
     lines.append("https://m.weibo.cn/status/%s" % blog["id"])
     nodes.append(make_cqnode( MessageSegment.text("\n".join(lines)) ))
-    for wb_text in blog["text"].split('\n'):
-        nodes.append(
-            make_cqnode(
-                MessageSegment.text(wb_text)
-            )
-        )
-    #nodes.append(make_cqnode( MessageSegment.text(blog["text"]) )) # too long!
+    #for wb_text in blog["text"].split('\n'):
+    #    nodes.append(
+    #        make_cqnode(
+    #            MessageSegment.text(wb_text)
+    #        )
+    #    )
+    nodes.append(make_cqnode( MessageSegment.text(blog["text"]) )) # too long?
     if blog.get("media", None):
         nodes.append(make_cqnode( MessageSegment( {"type": "video", "data": { "file": blog["media"] } } )) )
     if blog.get("pics", None):
         for x in blog["pics"]:
             nodes.append(make_cqnode( MessageSegment.image(x)) )
-    pprint.pprint(nodes)
+    # pprint.pprint(nodes)
     return nodes
 
 @sv.on_prefix(("吃饼", "饼呢"))
@@ -289,16 +290,19 @@ async def weibo_push():
     global cnt
     # print("- get_weibo")
     hr = datetime.now().hour
-    if (hr<10 or hr>19) and (cnt % 3 != 0):
-        cnt += 1
-        print("- skipped")
-    else:
+    minute = datetime.now().minute
+    # 判断时间。11-18点，整点附近狂暴蹲饼，否则摸鱼蹲饼
+    repeat_time = 1
+    repeat_interval = 15
+    if (hr>=10 and hr<=20) and (minute % 30 > 24 or minute % 30 < 6):
+        repeat_time = 18
+
+    while repeat_time > 0:
         uids = [6279793937, 1652903644]
         result = []
         for x in uids:
             print("- get_weibo %d" % x) 
             result.append(get_weibo(x))
-            await asyncio.sleep(3)
         for item in result:
             try:
                 if item[0]["timestamp"] >= ts_push:
@@ -306,7 +310,8 @@ async def weibo_push():
                     await weibo_do_bcast(item[0])
             except: pass
         ts_push = datetime.now().timestamp()
-        cnt += 1
+        repeat_time -= 1
+        await asyncio.sleep(repeat_interval)
 
 
 @sv.on_fullmatch(("更新方舟基础数据","更新舟游基础数据"))
@@ -388,6 +393,9 @@ async def akdata_mastery(bot, ev: CQEvent):
 async def ak_comm(bot, ev: CQEvent):
     resp = request.urlopen(u"https://ak-conf.hypergryph.com/config/prod/announce_meta/Android/announcement.meta.json")
     result = json.loads(resp.read().decode())
+    lines = []
+    item = None
+    gid = str(ev.group_id)
     x=0
     if len(str(ev.message))>0:
         x=int(str(ev.message))
@@ -395,26 +403,30 @@ async def ak_comm(bot, ev: CQEvent):
         if result.get("focusAnnounceId", None):
             aid = result["focusAnnounceId"]
             item = next(x for x in result["announceList"] if x.get("announceId", None) == aid)
-            if item:
-                title = item["title"].replace("\n", " ")
-                link = item["webUrl"]
-                image = f'file:///{os.path.abspath(working_path)}/dev.png'
-
-                lines = []
-                lines.append("明日方舟游戏公告: " + title)
-                lines.append(f"发布日期: {item['month']}-{item['day']}")
-                lines.append(f"[CQ:share,url={link}]")
-                lines.append(f"一共有 {len(result['announceList'])} 条公告")
-                await bot.send(ev, "\n".join(lines))
     else:
         item = result["announceList"][x-1]
-        if item:
-            title = item["title"].replace("\n", " ")
-            link = item["webUrl"]
+    
+    if item:
+        pprint.pprint(item)
+        title = item["title"].replace("\n", " ")
+        lines.append("明日方舟游戏公告: " + title)
+        lines.append(f"发布日期: {item['month']}-{item['day']}")
+        lines.append(f"一共有 {len(result['announceList'])} 条公告，使用[游戏公告 x]查看第x条公告'")
 
-            lines = []
-            lines.append(f"第 {x} 条公告内容:" + title)
-            lines.append(f"发布日期: {item['month']}-{item['day']}")
-            lines.append(f"[CQ:share,url={link}]")
-            await bot.send(ev, "\n".join(lines))
+        text = MessageSegment.text("\n".join(lines))
+        await bot.send(ev, text)
+
+        #这样不行
+        #link_node = make_cqnode({
+        #    "type": "share",
+        #    "data": { 
+        #        "url": item["webUrl"],
+        #        "title": item["title"],
+        #        "content": "明日方舟游戏公告",
+        #        "image": f'file:///{os.path.abspath(working_path)}/dev.png'
+        #    }
+        #})
+        # 直接发链接也会不能生成链接或被风控。尝试使用转发
+        link_node = make_cqnode(MessageSegment.text(item["webUrl"]))
+        await bot.send_group_forward_msg(group_id=gid, messages=[link_node])
 
