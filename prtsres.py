@@ -112,7 +112,7 @@ async def update_chara_db():
     global char_data
     print("- char_data")
     try:
-        res = await aiorequests.get("https://gitcdn.link/repo/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=20)
+        res = await aiorequests.get("https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=20)
     except:
         res = await aiorequests.get("https://raw.fastgit.org/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=20)
     new = await res.json()
@@ -142,7 +142,7 @@ async def update_config():
         "star_3": [],
         "other_chars": [],
         "recruit_chars": ["艾丝黛尔", "清流", "火神", "因陀罗"],
-        "limited_chars": ["W", "年", "迷迭香", "夕","灰烬","霜华","闪击","浊心斯卡蒂"]
+        "limited_chars": ["W", "年", "迷迭香", "夕","灰烬","霜华","闪击","浊心斯卡蒂","假日威龙陈","耀骑士临光","令","归溟幽灵鲨"]
     }
 
     for k in chars.keys():
@@ -274,7 +274,7 @@ async def update_config():
 
     # get normal gacha
     textn=""
-    for year in ["2021","2020","2019"]:
+    for year in ["2022","2021","2020","2019"]:
         url=f"http://prts.wiki/api.php?action=parse&format=json&page=%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88%2F%E5%B8%B8%E9%A9%BB%E6%A0%87%E5%87%86%E5%AF%BB%E8%AE%BF%2F{year}"
         try:
             res2 = await aiorequests.get(url, timeout=20)
