@@ -4,7 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import timedelta
 from textwrap import dedent
-from hoshino import Service, MessageSegment, util, logger
+from hoshino.typing import MessageSegment
+from hoshino import util, logger, Service
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
