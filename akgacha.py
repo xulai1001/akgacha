@@ -1,7 +1,7 @@
 #encoding:utf-8
 import pprint, json, random, copy, math, os
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageFilter
 from nonebot import MessageSegment
 from hoshino import R
 from hoshino.config import RES_DIR
@@ -70,14 +70,32 @@ def pull_naive(rate_6=2, limited=False, must_rare=False):
     return { "star": star, "up": up }
     
 # learn from HoshinoBot
-def gen_team_pic(team, size=64, ncol=5):
+def gen_team_pic(team, size=110, ncol=10):
+    global char_data
+    margin = 2
     nrow = math.ceil(len(team)/ncol)
-    des = Image.new("RGBA", (ncol * size, nrow * size), (0,0,0, 0))
+    des = Image.new("RGBA", (ncol * (size + margin) + margin, round(nrow * size * 2.1)), (0,0,0,0))
+    backs = []
+    for r in range(3, 7):
+        backs.append(Image.open(os.path.join(img_path, f"back_{r}.png")).resize((size, round(size*2.1)), Image.LANCZOS))
+
+    # 处理背景
     for i, name in enumerate(team):
-        face = Image.open(os.path.join(img_path, f"{get_charid(name)}.png"),).convert("RGBA").resize((size, size), Image.LANCZOS)
+        char_id = get_charid(name)
+        rarity = char_data[char_id]["rarity"]
         x = i % ncol
         y = math.floor(i / ncol)
-        des.paste(face, (x * size, y * size), face)
+        des.paste(backs[rarity-2], (x * (size + margin) + margin, round(y * size * 2.1)), backs[rarity-2])
+    des.filter(ImageFilter.GaussianBlur(radius=12))
+
+    # 干员
+    for i, name in enumerate(team):
+        char_id = get_charid(name)
+        face = Image.open(os.path.join(img_path, f"half/{char_id}.png"),).convert("RGBA").resize((size, size*2), Image.LANCZOS)
+        x = i % ncol
+        y = math.floor(i / ncol)
+        des.paste(face, (x * (size + margin) + margin, round(y * size * 2.1)), face)
+    
     return des
 
 def img_segment(img):
@@ -253,6 +271,7 @@ class Gacha:
     
     def summarize(self, show_5star=False):
         pic = gen_team_pic(self.rare_list[6]) if not show_5star else gen_team_pic(self.rare_list[6] + self.rare_list[5])
+        self.pic = pic
         text = ["寻访结果:"]
         text.append(f"{img_segment(pic)}")
         text.append("☆6×%d ☆5×%d ☆4×%d ☆3×%d" % (self.count[6], self.count[5], self.count[4], self.count[3]))
@@ -293,12 +312,16 @@ class Gacha:
     def summarize_tenpull(self, rst):
         team = [x["char"] for x in rst]
         pic = gen_team_pic(team)
+        self.pic = pic
         text = [f"{img_segment(pic)}"]
         text += [" ".join([f"☆{x['star']}{x['char']}" for x in rst])]
         return "\n".join(text)    
         
 if __name__ == "__main__":
     g = Gacha()
-    g.set_banner("r6")
+    g.set_banner("革新交响曲")
     pprint.pprint(g.banner)
-    
+    g.ten_pull()
+    g.summarize()
+    g.pic.save("gacha.png")
+

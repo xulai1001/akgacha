@@ -22,7 +22,7 @@ gacha_data = json.load(
 
 
 proxies={ 'http':'socks5h://127.0.0.1:1080',
-               'https':'socks5h://127.0.0.1:1080'}
+          'https':'socks5h://127.0.0.1:1080'}
 
 async def update_res(): 
     count=0
@@ -114,7 +114,7 @@ async def update_chara_db():
     try:
         res = await aiorequests.get("https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=20)
     except:
-        res = await aiorequests.get("https://raw.fastgit.org/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", timeout=20)
+        res = await aiorequests.get("https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json", proxies=proxies, timeout=20)
     new = await res.json()
     if new == char_data:
         return 0
@@ -157,9 +157,9 @@ async def update_config():
     # get chara onlinetime
     print("- online time")
     try:
-        res = await aiorequests.get('http://prts.wiki/w/%E5%B9%B2%E5%91%98%E4%B8%8A%E7%BA%BF%E6%97%B6%E9%97%B4%E4%B8%80%E8%A7%88', timeout=10)
+        res = await aiorequests.get('http://prts.wiki/w/%E5%B9%B2%E5%91%98%E4%B8%8A%E7%BA%BF%E6%97%B6%E9%97%B4%E4%B8%80%E8%A7%88', timeout=20)
     except:
-        res = await aiorequests.get('http://prts.wiki/w/%E5%B9%B2%E5%91%98%E4%B8%8A%E7%BA%BF%E6%97%B6%E9%97%B4%E4%B8%80%E8%A7%88', timeout=10)
+        res = await aiorequests.get('http://prts.wiki/w/%E5%B9%B2%E5%91%98%E4%B8%8A%E7%BA%BF%E6%97%B6%E9%97%B4%E4%B8%80%E8%A7%88', proxies=proxies, timeout=30)
     text = await res.text
     text = text.replace('\n', '')
     ret = r'<tr><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><\/tr>'
@@ -171,17 +171,20 @@ async def update_config():
         online[name] = onlinetime
 
     # get limited gacha
-    print("- limited gacha")
+    print("- 限定卡池")
     try:
-        res = await aiorequests.get('http://prts.wiki/w/%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88/%E9%99%90%E6%97%B6%E5%AF%BB%E8%AE%BF', timeout=10)
+        res = await aiorequests.get('http://prts.wiki/w/%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88/%E9%99%90%E6%97%B6%E5%AF%BB%E8%AE%BF', timeout=20)
     except:
-        res = await aiorequests.get('http://prts.wiki/w/%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88/%E9%99%90%E6%97%B6%E5%AF%BB%E8%AE%BF', timeout=10)
+        res = await aiorequests.get('http://prts.wiki/w/%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88/%E9%99%90%E6%97%B6%E5%AF%BB%E8%AE%BF', proxies=proxies, timeout=20)
     text = await res.text
     text = text.replace('\n', '')
+    # 去除嵌套表格
+    text = re.sub(r'<table class="wikitable mw-collapsible mw-collapsed">(.*?)</table>', '', text)
     banner = {}
     limited = re.findall("<table(.*?)</table>", text)
     ret = r'<tr><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><td>(.*?)<\/td><\/tr>'
-    result = re.findall(ret, limited[0])
+    result = re.findall(ret, limited[0] )
+    print(len(result))
     for gacha in result:
         name = re.search('title="(.*?)"', gacha[0]).group(1)
         name = name.replace('寻访模拟/', '')
@@ -203,6 +206,10 @@ async def update_config():
                 elif online[chara] > opentimestp:
                     exclude.append(chara)
         star6 = re.findall('title="(.*?)"', gacha[2])
+        if len(star6) == 0:
+            print(f"gacha{name} star6 count error!")
+            continue
+
         star5 = re.findall('title="(.*?)"', gacha[3])
         star4 = []
         starex = re.findall(
@@ -221,12 +228,12 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
-        print(name)
+        print(name, cur["favor"])
         cur["exclude"] = exclude
         banner[name] = cur
 
     # get timelimit gacha
-
+    print("- 限时卡池")
     result = re.findall(ret, limited[1])
     for gacha in result:
         name = re.search('title="(.*?)"', gacha[0]).group(1)
@@ -268,11 +275,12 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
-        print(name)
+        print(name, star6)
         cur["exclude"] = exclude
         banner[name] = cur
 
     # get normal gacha
+    print("- 普池")
     textn=""
     for year in ["2022","2021","2020","2019"]:
         url=f"http://prts.wiki/api.php?action=parse&format=json&page=%E5%8D%A1%E6%B1%A0%E4%B8%80%E8%A7%88%2F%E5%B8%B8%E9%A9%BB%E6%A0%87%E5%87%86%E5%AF%BB%E8%AE%BF%2F{year}"
@@ -325,7 +333,7 @@ async def update_config():
         cur["up_6"] = star6
         cur["up_5"] = star5
         cur["up_4"] = star4
-        print(gachaid)
+        print(gachaid, star6)
         cur["exclude"] = exclude
         banner[f'普池#{gachaid}'] = cur
 
