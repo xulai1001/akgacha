@@ -100,7 +100,19 @@ async def set_pool(bot, ev: CQEvent):
             
 @sv.on_fullmatch(("查看方舟历史卡池","查看舟游历史卡池"))
 async def history_pool(bot, ev: CQEvent):
-    lines = ["全部卡池:"] + list(gacha_data["banners"].keys()) + ["", "使用命令 切换方舟卡池 x（x为卡池名）进行设置"]
+    lines = ["全部卡池:"]
+
+    for key in gacha_data["banners"].keys():
+        explain = f"{key} - {'/'.join(gacha_data['banners'][key]['up_6'])}"
+        if key.startswith(u"普池"):
+            explain += f"\n普池范围：{key} ~ 普池#1"
+            lines.append(explain)
+            break
+        lines.append(explain)
+
+    lines.append("")
+    lines.append("使用命令 切换方舟卡池 x 进行设置")
+    lines.append("x为卡池名，如 海蚀")
     await bot.finish(ev, "\n".join(lines))
 
 async def check_jewel(bot, ev):
@@ -368,7 +380,7 @@ async def update_pool(bot, ev: CQEvent):
         else:
             await bot.send(ev, '资源已是最新版本！')
     except Exception as e:
-        print(format_exc())
+        print(traceback.format_exc())
         await bot.send(ev, f'更新失败……{e}')
 
 @sv.on_prefix(("方舟dps"))

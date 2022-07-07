@@ -46,6 +46,8 @@ async def update_res():
 
     for key in halfdict:
         filelink = halfdict[key]
+        if filelink == None or len(filelink) == 0:
+            continue
         if filelink[0] == "/":
             filelink = "https:" + filelink
         name=str(key)
@@ -76,6 +78,8 @@ async def update_res():
 
     for key in icondict:
         filelink = icondict[key]
+        if filelink == None or len(filelink) == 0:
+            continue
         if filelink[0] == "/":
             filelink = "https:" + filelink
         name=str(key)
