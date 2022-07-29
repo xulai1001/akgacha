@@ -151,7 +151,7 @@ async def gacha_300(bot, ev: CQEvent):
     
     g = Gacha()
     g.set_banner(b)
-    if b == "r6":
+    if b == "进攻、防守、战术交汇":
         for i in range(0, 12):
             g.ten_pull()
         await bot.send(ev, g.summarize(True), at_sender=True)
